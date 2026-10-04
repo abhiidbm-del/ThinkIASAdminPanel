@@ -77,10 +77,33 @@
           >
         </div>
 
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class="fas fa-university"></i> Examination *</label>
+            <select [(ngModel)]="currentProgram.examination" name="examination">
+              <option *ngFor="let exam of examinations" [value]="exam">{{ exam }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="fas fa-route"></i> Program *</label>
+            <select [(ngModel)]="currentProgram.programStage" name="programStage">
+              <option *ngFor="let stage of stages" [value]="stage">{{ stage }}</option>
+            </select>
+          </div>
+        </div>
+
         <div class="form-group">
-          <label><i class="fas fa-category"></i> Program Category *</label>
+          <label><i class="fas fa-category"></i> Plan *</label>
           <select [(ngModel)]="currentProgram.programCategory" name="programCategory">
             <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+
+        <div class="form-group" *ngIf="isTestSeries(currentProgram.programCategory)">
+          <label><i class="fas fa-file-alt"></i> Prelims paper</label>
+          <select [(ngModel)]="currentProgram.paperVariant" name="paperVariant">
+            <option value="GS">GS only</option>
+            <option value="GS+CSAT">GS + CSAT</option>
           </select>
         </div>
 
@@ -279,6 +302,9 @@
           <div class="card-body">
             <h3>{{ program.programName }}</h3>
             <div class="program-meta">
+              <span class="year-badge" *ngIf="program.examination">{{ program.examination }}</span>
+              <span class="year-badge" *ngIf="program.programStage">{{ program.programStage }}</span>
+              <span class="year-badge" *ngIf="program.paperVariant">{{ program.paperVariant }}</span>
               <span class="year-badge">
                 <i class="fas fa-calendar-alt"></i> {{ program.year }}
               </span>
