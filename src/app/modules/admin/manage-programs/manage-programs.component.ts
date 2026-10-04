@@ -12,6 +12,9 @@ export interface Program {
   programName: string;
   programNameHindi?: string; descriptionHindi?: string; durationHindi?: string; featuresHindi?: string[]; displayImageHindi?: string;
   programCategory: string;
+  examination?: string;
+  programStage?: string;
+  paperVariant?: string;
   year: string;
   price: number;
   displayImage: string;
@@ -39,7 +42,9 @@ export class ManageProgramsComponent implements OnInit {
   private programDialog?: MatDialogRef<unknown>;
 
   programs: Program[] = [];
-  categories: string[] = ['Mentorship Course', 'Optional Mentorship Course', 'Test Series', 'Optional Test Series', 'Essay', 'Prelims Program', 'Mains Program', 'Interview Program'];
+  categories: string[] = ['Mentorship Course', 'Optional Mentorship Course', 'Test Series', 'Optional Test Series', 'Essay', 'Qualifying Paper', 'Prelims Program', 'Mains Program', 'Interview Program'];
+  examinations: string[] = ['UPSC', 'UPPSC', 'APSC', 'EPFO'];
+  stages: string[] = ['Prelims', 'Mains', 'Interview', 'Combo I', 'Combo II'];
 
   startDateInput: string = '';
   endDateInput: string = '';
@@ -50,6 +55,9 @@ export class ManageProgramsComponent implements OnInit {
   currentProgram: Program = {
     programName: '',
     programCategory: 'Mentorship Course',
+    examination: 'UPSC',
+    programStage: 'Prelims',
+    paperVariant: '',
     year: '',
     price: 0,
       displayImage: '',
@@ -209,7 +217,12 @@ export class ManageProgramsComponent implements OnInit {
 
   // Open form for editing program
   editProgram(program: Program): void {
-    this.currentProgram = { ...program };
+    this.currentProgram = {
+      ...program,
+      examination: program.examination || 'UPSC',
+      programStage: program.programStage || 'Prelims',
+      paperVariant: program.paperVariant || ''
+    };
     this.featuresHindiInput = (program.featuresHindi || []).join('\n');
     this.isEditing = true;
     this.editingId = program._id || null;
@@ -284,6 +297,11 @@ export class ManageProgramsComponent implements OnInit {
     
     this.currentProgram.startDate = this.startDateInput;
     this.currentProgram.endDate = this.endDateInput;
+    if (!this.isTestSeries(this.currentProgram.programCategory)) {
+      this.currentProgram.paperVariant = '';
+    } else if (!this.currentProgram.paperVariant) {
+      this.currentProgram.paperVariant = 'GS';
+    }
 
     this.currentProgram.featuresHindi = this.featuresHindiInput.split(/\r?\n/).map(value => value.trim());
     if (this.featuresInput.trim()) {
@@ -379,11 +397,18 @@ export class ManageProgramsComponent implements OnInit {
     this.toggleProgramStatus(program);
   }
 
+  isTestSeries(category: string | undefined): boolean {
+    return category === 'Test Series' || category === 'Optional Test Series';
+  }
+
   // Reset form
   resetForm(): void {
     this.currentProgram = {
       programName: '',
       programCategory: 'Mentorship Course',
+      examination: 'UPSC',
+      programStage: 'Prelims',
+      paperVariant: '',
       year: '',
       price: 0,
       displayImage: '',

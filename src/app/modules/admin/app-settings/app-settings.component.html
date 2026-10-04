@@ -1,0 +1,116 @@
+<main class="settings-page">
+  <header class="page-heading">
+    <div>
+      <span class="eyebrow">APP CONTROL CENTER</span>
+      <h1>App settings</h1>
+      <p>Manage the app version, support contacts, store links and in-app banners.</p>
+    </div>
+    <div class="heading-badge"><mat-icon>phone_iphone</mat-icon><span>Mobile app</span></div>
+  </header>
+
+  <div *ngIf="error" class="notice notice-error" role="alert"><mat-icon>error_outline</mat-icon>{{ error }}</div>
+  <div *ngIf="success" class="notice notice-success" role="status"><mat-icon>check_circle</mat-icon>{{ success }}</div>
+
+  <div *ngIf="loading" class="loading-card"><span class="loader"></span>Loading app settings…</div>
+
+  <form *ngIf="!loading" (ngSubmit)="save()" #settingsForm="ngForm">
+    <section class="section-card">
+      <div class="section-heading">
+        <div class="section-icon indigo"><mat-icon>apps</mat-icon></div>
+        <div><h2>App information</h2><p>Basic app identity and the version shown to users.</p></div>
+      </div>
+      <div class="field-grid">
+        <label class="field">
+          <span>App version <b>*</b></span>
+          <input name="version" [(ngModel)]="config.version" required maxlength="30" placeholder="1.0.1">
+          <small>Current release version</small>
+        </label>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-heading">
+        <div class="section-icon teal"><mat-icon>support_agent</mat-icon></div>
+        <div><h2>Support contacts</h2><p>How users can get in touch with your team.</p></div>
+      </div>
+      <div class="field-grid">
+        <label class="field">
+          <span>Phone number</span>
+          <input name="phone" [(ngModel)]="config.phone" type="tel" maxlength="30" placeholder="+91 98765 43210">
+        </label>
+        <label class="field">
+          <span>Support email</span>
+          <input name="email" [(ngModel)]="config.email" type="email" maxlength="254" placeholder="support@example.com">
+        </label>
+        <label class="field">
+          <span>WhatsApp number</span>
+          <input name="whatsapp" [(ngModel)]="config.whatsapp" type="tel" maxlength="30" placeholder="919876543210">
+          <small>Include country code, without the + sign.</small>
+        </label>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-heading">
+        <div class="section-icon blue"><mat-icon>link</mat-icon></div>
+        <div><h2>Store & sharing links</h2><p>Direct users to your app listings and preferred share page.</p></div>
+      </div>
+      <div class="field-grid">
+        <label class="field">
+          <span>Android app URL</span>
+          <input name="androidUrl" [(ngModel)]="config.androidUrl" type="url" maxlength="2048" placeholder="https://play.google.com/store/apps/...">
+        </label>
+        <label class="field">
+          <span>iOS app URL</span>
+          <input name="iosUrl" [(ngModel)]="config.iosUrl" type="url" maxlength="2048" placeholder="https://apps.apple.com/app/...">
+        </label>
+        <label class="field field-wide">
+          <span>Share URL</span>
+          <input name="shareUrl" [(ngModel)]="config.shareUrl" type="url" maxlength="2048" placeholder="https://thinkcivilias.com/app">
+          <small>Used as the main destination when users share the app.</small>
+        </label>
+      </div>
+    </section>
+
+    <section class="section-card banners-card">
+      <div class="section-heading banner-heading">
+        <div class="section-icon amber"><mat-icon>collections</mat-icon></div>
+        <div><h2>App banners</h2><p>Add image URLs to display promotional banners in the app.</p></div>
+        <span class="banner-count">{{ config.banners.length }} / 20</span>
+      </div>
+
+      <div *ngIf="config.banners.length === 0" class="empty-banners">
+        <mat-icon>image</mat-icon>
+        <strong>No banners added yet</strong>
+        <span>Add a public image URL to show a banner in the app.</span>
+      </div>
+
+      <div class="banner-list">
+        <div class="banner-row" *ngFor="let banner of config.banners; let i = index">
+          <div class="banner-number">{{ (i + 1).toString().padStart(2, '0') }}</div>
+          <div class="banner-input">
+            <label [for]="'banner-' + i">Banner image URL</label>
+            <input [id]="'banner-' + i" [name]="'banner-' + i" [(ngModel)]="config.banners[i]" type="url" maxlength="2048" placeholder="https://example.com/banner.jpg">
+          </div>
+          <div class="image-preview" *ngIf="config.banners[i]">
+            <img [src]="config.banners[i]" alt="Banner preview" (error)="$any($event.target).style.display='none'">
+          </div>
+          <button type="button" class="remove-banner" (click)="removeBanner(i)" [attr.aria-label]="'Remove banner ' + (i + 1)">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <button type="button" class="add-banner" (click)="addBanner()" [disabled]="config.banners.length >= 20">
+        <mat-icon>add</mat-icon>Add banner URL
+      </button>
+    </section>
+
+    <footer class="save-bar">
+      <div class="save-note"><mat-icon>cloud_done</mat-icon><span>Changes are saved to the app configuration.</span></div>
+      <button type="submit" class="save-button" [disabled]="saving || settingsForm.invalid">
+        <mat-icon>{{ saving ? 'hourglass_top' : 'save' }}</mat-icon>{{ saving ? 'Saving…' : 'Save changes' }}
+      </button>
+    </footer>
+  </form>
+</main>

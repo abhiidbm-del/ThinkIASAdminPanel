@@ -150,6 +150,12 @@ export const routes: Routes = [
     data: { role: 'admin' }
   },
   {
+    path: 'app-settings',
+    loadComponent: () => import('./modules/admin/app-settings/app-settings.component').then(m => m.AppSettingsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
   path: 'free-resource-admin', 
   loadComponent: () => import('./modules/admin/free-resource-admin/free-resource-admin.component').then(m => m.FreeResourceAdminComponent),
   canActivate: [authGuard, roleGuard],
