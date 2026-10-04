@@ -1,0 +1,75 @@
+<div class="syllabus-viewer">
+  <div class="explorer-header">
+    <button class="back-button" (click)="goBack()">
+      <i class="fa fa-chevron-left"></i>
+      <span>Back</span>
+    </button>
+    <div class="header-content">
+      <i class="fa fa-graduation-cap header-icon"></i>
+      <h2>{{ formatName(syllabusType) }} Syllabus Explorer</h2>
+    </div>
+  </div>
+
+  <div class="breadcrumb">
+    <div class="breadcrumb-container">
+      <span class="breadcrumb-home" (click)="navigateBreadcrumb(0)">
+        <i class="fa fa-home"></i>
+      </span>
+      <span *ngFor="let crumb of breadcrumbs; let i = index" 
+            class="breadcrumb-item"
+            [class.active]="i === breadcrumbs.length - 1"
+            (click)="navigateBreadcrumb(i)">
+        <i *ngIf="i === 0" class="fa fa-folder"></i>
+        {{ crumb.name }}
+        <span *ngIf="i < breadcrumbs.length - 1" class="separator">
+          <i class="fa fa-chevron-right"></i>
+        </span>
+      </span>
+    </div>
+  </div>
+
+  <div class="explorer-window">
+    <div class="content-pane">
+      <div *ngIf="!currentData || getObjectKeys(currentData).length === 0" class="empty-folder">
+        <div class="empty-icon">
+          <i class="fa fa-folder-open"></i>
+        </div>
+        <h3>Empty Folder</h3>
+        <p>This folder doesn't contain any items</p>
+      </div>
+
+      <div *ngFor="let key of getObjectKeys(currentData)" class="explorer-item">
+        <div *ngIf="isFolder(currentData[key])" 
+             class="folder"
+             (click)="navigateToFolder(key)">
+          <div class="folder-icon">
+            <i class="fa fa-folder"></i>
+            <i class="fa fa-folder-open folder-hover"></i>
+          </div>
+          <div class="item-info">
+            <span class="name">{{ formatItemName(key) }}</span>
+            <span class="type">Folder • {{ countItems(currentData[key], key) }} items</span>
+          </div>
+          <div class="folder-arrow">
+            <i class="fa fa-chevron-right"></i>
+          </div>
+        </div>
+
+        <div *ngIf="!isFolder(currentData[key])" 
+             class="file"
+             (click)="openFile(currentData[key].fileLink)">
+          <div class="file-icon">
+            <i class="material-icons">picture_as_pdf</i>
+          </div>
+          <div class="item-info">
+            <span class="name">{{ currentData[key].fileName || formatItemName(key) }}</span>
+            <span class="description">{{ currentData[key].description || 'PDF Document' }}</span>
+          </div>
+          <div class="file-action">
+            <i class="fa fa-external-link"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

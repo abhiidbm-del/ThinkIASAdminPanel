@@ -1,0 +1,466 @@
+<!-- dashboard.component.html -->
+<div class="dashboard-container">
+  <!-- <h1>Welcome, {{ currentUser()?.fullName }}!</h1> -->
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading">
+    <p>{{ 'Loading dashboard data...' | t }}</p>
+  </div>
+
+  <!-- Fresh Student Dashboard -->
+  <div *ngIf="!loading() && currentUser()?.role === 'student' && currentUser()?.type === 'fresh'" class="fresh-student-dashboard">
+    
+    <!-- Welcome & Motivation Section -->
+    <div class="welcome-section">
+      <mat-card class="welcome-card">
+        <mat-card-content class="hero-content">
+          <div class="hero-copy">
+            <p class="hero-eyebrow">STUDENT WORKSPACE</p>
+            <h2>Welcome, {{ currentUser()?.fullName }}!</h2>
+            <p class="hero-subtitle">Stay on top of your preparation, upcoming tests and progress.</p>
+          </div>
+          <div class="hero-sparkle" aria-hidden="true">
+            <mat-icon>auto_awesome</mat-icon>
+          </div>
+        </mat-card-content>
+        <!-- <mat-card-actions>
+          <button mat-raised-button color="primary" routerLink="/plans" class="cta-button">
+            <mat-icon>rocket_launch</mat-icon>
+            View Plans & Pricing
+          </button>
+          <button mat-stroked-button color="primary" routerLink="/demo">
+            <mat-icon>play_circle</mat-icon>
+            Try Free Demo
+          </button>
+        </mat-card-actions> -->
+      </mat-card>
+    </div>
+
+    <!-- Plan Comparison Section -->
+    <div class="plans-section">
+      <h2>{{ 'Choose Your Success Plan' | t }}</h2>
+      <div class="plans-grid">
+        
+        <!-- PRE Plan -->
+        <mat-card class="plan-card">
+          <mat-card-header>
+            <div class="plan-badge pre-badge">{{ 'Most Popular' | t }}</div>
+            <mat-card-title>PRE Foundation</mat-card-title>
+            <mat-card-subtitle>Perfect for Prelims Preparation</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="plan-price">
+              <span class="price">₹499</span>
+              <span class="duration">/month</span>
+            </div>
+            <ul class="plan-features">
+              <li><mat-icon>check</mat-icon> 500+ Prelims MCQs</li>
+              <li><mat-icon>check</mat-icon> 10 Full Mock Tests</li>
+              <li><mat-icon>check</mat-icon> Current Affairs Updates</li>
+              <li><mat-icon>check</mat-icon> CSAT Preparation</li>
+              <li><mat-icon>check</mat-icon> Basic Analytics</li>
+              <li><mat-icon>remove</mat-icon> Mains Answer Writing</li>
+              <li><mat-icon>remove</mat-icon> Essay Practice</li>
+            </ul>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-raised-button color="primary" class="plan-button" (click)="openPaymentDialog('pre')">
+  Choose PRE Plan
+</button>
+          </mat-card-actions>
+        </mat-card>
+
+        <!-- MAINS Plan -->
+        <mat-card class="plan-card">
+          <mat-card-header>
+            <mat-card-title>MAINS Mastery</mat-card-title>
+            <mat-card-subtitle>Comprehensive Mains Preparation</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="plan-price">
+              <span class="price">₹699</span>
+              <span class="duration">/month</span>
+            </div>
+            <ul class="plan-features">
+              <li><mat-icon>check</mat-icon> 200+ Mains Questions</li>
+              <li><mat-icon>check</mat-icon> Essay Writing Practice</li>
+              <li><mat-icon>check</mat-icon> Answer Evaluation</li>
+              <li><mat-icon>check</mat-icon> Optional Subject Support</li>
+              <li><mat-icon>check</mat-icon> Advanced Analytics</li>
+              <li><mat-icon>check</mat-icon> Expert Feedback</li>
+              <li><mat-icon>remove</mat-icon> Prelims Content</li>
+            </ul>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-raised-button color="accent" class="plan-button" (click)="openPaymentDialog('mains')">
+  Choose MAINS Plan
+</button>
+          </mat-card-actions>
+        </mat-card>
+
+        <!-- COMBO Plan -->
+        <mat-card class="plan-card featured">
+          <mat-card-header>
+            <div class="plan-badge combo-badge">{{ 'Best Value' | t }}</div>
+            <mat-card-title>COMBO Complete</mat-card-title>
+            <mat-card-subtitle>PRE + MAINS Full Preparation</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="plan-price">
+              <span class="price">₹999</span>
+              <span class="duration">/month</span>
+              <div class="savings">Save ₹199</div>
+            </div>
+            <ul class="plan-features">
+              <li><mat-icon>check</mat-icon> All PRE + MAINS Features</li>
+              <li><mat-icon>check</mat-icon> 1000+ Practice Questions</li>
+              <li><mat-icon>check</mat-icon> 25+ Mock Tests</li>
+              <li><mat-icon>check</mat-icon> Personal Mentor</li>
+              <li><mat-icon>check</mat-icon> Priority Support</li>
+              <li><mat-icon>check</mat-icon> Interview Guidance</li>
+              <li><mat-icon>check</mat-icon> Study Plan Customization</li>
+            </ul>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-raised-button color="warn" class="plan-button" (click)="openPaymentDialog('combo')">
+  Choose COMBO Plan
+</button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Free Preview Section -->
+    <!-- <div class="preview-section">
+      <h2>Experience Our Platform - Free Preview</h2>
+      <div class="preview-grid">
+        <mat-card class="preview-card">
+          <mat-card-content>
+            <mat-icon>visibility</mat-icon>
+            <h3>Sample Study Material</h3>
+            <p>Get a glimpse of our comprehensive study materials with free samples</p>
+            <button mat-stroked-button color="primary" routerLink="/demo/materials">
+              View Samples
+            </button>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="preview-card">
+          <mat-card-content>
+            <mat-icon>quiz</mat-icon>
+            <h3>Free Mock Test</h3>
+            <p>Take one free mock test to experience our testing platform</p>
+            <button mat-stroked-button color="primary" routerLink="/demo/test">
+              Take Free Test
+            </button>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="preview-card">
+          <mat-card-content>
+            <mat-icon>analytics</mat-icon>
+            <h3>Demo Analytics</h3>
+            <p>See how our analytics can help you track your progress</p>
+            <button mat-stroked-button color="primary" routerLink="/demo/analytics">
+              View Demo
+            </button>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div> -->
+
+    <!-- Testimonials Section -->
+    <div class="testimonials-section">
+      <h2>{{ 'Success Stories from Our Students' | t }}</h2>
+      <div class="testimonials-grid">
+        <mat-card class="testimonial-card">
+          <mat-card-content>
+            <div class="testimonial-text">
+              "ThinkCivil's PRE plan helped me clear prelims in my first attempt. The mock tests were exactly like the actual exam!"
+            </div>
+            <div class="testimonial-author">
+              <strong>- Rohan Sharma</strong>
+              <span>UPSC 2023 Selected</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="testimonial-card">
+          <mat-card-content>
+            <div class="testimonial-text">
+              "The COMBO plan was worth every penny. From prelims to mains, everything was covered systematically."
+            </div>
+            <div class="testimonial-author">
+              <strong>- Priya Singh</strong>
+              <span>IAS 2022</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="testimonial-card">
+          <mat-card-content>
+            <div class="testimonial-text">
+              "MAINS answer evaluation by experts transformed my writing skills. Scored 140+ in GS papers!"
+            </div>
+            <div class="testimonial-author">
+              <strong>- Amit Kumar</strong>
+              <span>IPS 2023</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Final CTA Section -->
+    <div class="final-cta">
+      <mat-card class="cta-card">
+        <mat-card-content>
+          <h2>Ready to Start Your UPSC Journey?</h2>
+          <p>Join thousands of successful aspirants. Choose your plan and begin your preparation today!</p>
+          <div class="cta-buttons">
+            <button mat-raised-button color="primary" size="large">
+              <mat-icon>shopping_cart</mat-icon>
+              View All Plans
+            </button>
+            <button mat-stroked-button color="primary" size="large">
+              <mat-icon>help</mat-icon>
+              Need Help Choosing?
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Pre Student Dashboard (Existing Student Dashboard) -->
+  <div *ngIf="!loading() && currentUser()?.role === 'student' && currentUser()?.type === 'pre'" class="student-dashboard">
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-header>
+          <mat-card-title>{{ 'Upcoming Tests' | t }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <h2>{{ upcomingTests().length }}</h2>
+          <p>Tests scheduled</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-header>
+          <mat-card-title>{{ 'Completed Tests' | t }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <h2>{{ completedTestsCount() }}</h2>
+          <p>Tests completed</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card" *ngIf="recentResults().length > 0">
+        <mat-card-header>
+          <mat-card-title>Recent Performance</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <h2>{{ getRecentPerformance() }}</h2>
+          <p>Based on last {{ recentResults().length }} tests</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Recent Results -->
+    <div class="recent-results" *ngIf="recentResults().length > 0">
+      <h2>{{ 'Recent Results' | t }}</h2>
+      <div class="results-grid">
+        <mat-card *ngFor="let result of recentResults()" class="result-card">
+          <mat-card-header>
+            <mat-card-title>{{ result.test.title }}</mat-card-title>
+            <mat-card-subtitle>
+              Score: {{ result.score }}/{{ result.totalMarks }} ({{ result.percentage }}%)
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p><strong>Rank:</strong> {{ result.rank }}/{{ result.totalStudents }}</p>
+            <p><strong>Submitted:</strong> {{ result.submittedAt | date:'short' }}</p>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button color="primary" [routerLink]="['/result-detail', result._id]" [queryParams]="{testId: result.test._id}">
+              {{ 'View Details' | t }}
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Upcoming Tests -->
+    <div class="upcoming-tests" *ngIf="upcomingTests().length > 0">
+      <h2>{{ 'Upcoming Tests' | t }}</h2>
+      <div class="tests-grid">
+        <mat-card *ngFor="let test of upcomingTests()" class="test-card">
+          <mat-card-header>
+            <mat-card-title>{{ test.title }}</mat-card-title>
+            <mat-card-subtitle>
+              Starts: {{ test.startTime | date:'medium' }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p><strong>Duration:</strong> {{ test.duration }} minutes</p>
+            <p><strong>Questions:</strong> {{ test.totalQuestions || test.questions?.length || 0 }}</p>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button color="primary" routerLink="/live-tests">{{ 'View All Tests' | t }}</button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Empty State for New Pre Students -->
+    <div *ngIf="upcomingTests().length === 0 && completedTestsCount() === 0" class="empty-state">
+      <mat-card>
+        <mat-card-content>
+          <h3>Welcome to ThinkCivil!</h3>
+          <p>You haven't taken any tests yet. Check the Live Tests section to get started!</p>
+          <button mat-raised-button color="primary" routerLink="/live-tests">
+            {{ 'Browse Available Tests' | t }}
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div *ngIf="!loading() && currentUser()?.role === 'admin' && statisticsError()" role="alert">
+    <p>{{statisticsError()}}</p><button mat-raised-button (click)="loadAdminData()">Retry</button>
+  </div>
+  <div *ngIf="!loading() && currentUser()?.role === 'admin' && !statisticsError()" class="admin-dashboard">
+    <div class="stats-grid">
+      <a class="stat-card-link" routerLink="/manage-tests" aria-label="View all tests">
+        <mat-card class="stat-card stat-card-tests">
+          <div class="stat-card-topline">
+            <div class="stat-icon" aria-hidden="true"><mat-icon>quiz</mat-icon></div>
+            <span class="stat-label">Total Tests</span>
+            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+          </div>
+          <div class="stat-value-row"><h2>{{ totalTestsCount() }}</h2><span class="stat-description">Tests created</span></div>
+        </mat-card>
+      </a>
+
+      <a class="stat-card-link" routerLink="/manage-tests" [queryParams]="{ seriesKind: 'pre' }" aria-label="View Prelims tests">
+        <mat-card class="stat-card stat-card-prelims">
+          <div class="stat-card-topline">
+            <div class="stat-icon" aria-hidden="true"><mat-icon>fact_check</mat-icon></div>
+            <span class="stat-label">Prelims Exams</span>
+            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+          </div>
+          <div class="stat-value-row"><h2>{{ prelimsTestsCount() }}</h2><span class="stat-description">Prelims tests</span></div>
+        </mat-card>
+      </a>
+
+      <a class="stat-card-link" routerLink="/manage-tests" [queryParams]="{ seriesKind: 'mains' }" aria-label="View Mains tests">
+        <mat-card class="stat-card stat-card-mains">
+          <div class="stat-card-topline">
+            <div class="stat-icon" aria-hidden="true"><mat-icon>edit_note</mat-icon></div>
+            <span class="stat-label">Mains Exams</span>
+            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+          </div>
+          <div class="stat-value-row"><h2>{{ mainsTestsCount() }}</h2><span class="stat-description">Mains tests</span></div>
+        </mat-card>
+      </a>
+
+      <a class="stat-card-link" routerLink="/questions-master" aria-label="Open Question Bank">
+        <mat-card class="stat-card stat-card-questions">
+          <div class="stat-card-topline">
+            <div class="stat-icon" aria-hidden="true"><mat-icon>inventory_2</mat-icon></div>
+            <span class="stat-label">Question Bank</span>
+            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+          </div>
+          <div class="stat-value-row"><h2>{{ questionBankCount() }}</h2><span class="stat-description">Questions stored</span></div>
+        </mat-card>
+      </a>
+
+      <a class="stat-card-link" routerLink="/support-tickets" aria-label="Open support requests">
+        <mat-card class="stat-card stat-card-support">
+          <div class="stat-card-topline">
+            <div class="stat-icon" aria-hidden="true"><mat-icon>support_agent</mat-icon></div>
+            <span class="stat-label">Support Requests</span>
+            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+          </div>
+          <div class="support-counts">
+            <div><strong>{{ newSupportRequestsCount() }}</strong><span>New · 24h</span></div>
+            <div><strong>{{ openSupportRequestsCount() }}</strong><span>Open</span></div>
+          </div>
+        </mat-card>
+      </a>
+
+      <a class="stat-card-link" routerLink="/website-quiz-attempts" aria-label="Open Website Quiz student attempts">
+        <mat-card class="stat-card stat-card-quizzes">
+          <div class="stat-card-topline">
+            <div class="stat-icon" aria-hidden="true"><mat-icon>quiz</mat-icon></div>
+            <span class="stat-label">Website Quiz</span>
+            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+          </div>
+          <div class="stat-value-row"><h2>{{ quizAttemptsCount() }}</h2><span class="stat-description">Total attempts</span></div>
+          <div class="stat-secondary-value"><strong>{{ recentQuizAttemptsCount() }}</strong><span>New attempts · 24h</span></div>
+        </mat-card>
+      </a>
+
+      <a class="stat-card-link" routerLink="/demo-test-attempts" aria-label="Open Demo Test student attempts">
+        <mat-card class="stat-card stat-card-demo-tests">
+          <div class="stat-card-topline">
+            <div class="stat-icon" aria-hidden="true"><mat-icon>play_lesson</mat-icon></div>
+            <span class="stat-label">Demo Test</span>
+            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+          </div>
+          <div class="stat-value-row"><h2>{{ demoAttemptsCount() }}</h2><span class="stat-description">Total attempts</span></div>
+          <div class="stat-secondary-value"><strong>{{ recentDemoAttemptsCount() }}</strong><span>New attempts · 24h</span></div>
+        </mat-card>
+      </a>
+
+      <mat-card class="stat-card stat-card-students clickable-card" (click)="navigateToStudentsList()">
+        <div class="stat-card-topline">
+          <div class="stat-icon" aria-hidden="true"><mat-icon>groups</mat-icon></div>
+          <span class="stat-label">{{ 'Total Students' | t }}</span>
+          <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+        </div>
+        <div class="stat-value-row"><h2>{{ totalStudentsCount() }}</h2><span class="stat-description">Registered students</span></div>
+      </mat-card>
+
+      <a class="stat-card-link" routerLink="/admin-results" aria-label="View all test results">
+        <mat-card class="stat-card stat-card-results">
+          <div class="stat-card-topline">
+            <div class="stat-icon" aria-hidden="true"><mat-icon>insights</mat-icon></div>
+            <span class="stat-label">Total Results</span>
+            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+          </div>
+          <div class="stat-value-row"><h2>{{ totalResultsCount() }}</h2><span class="stat-description">Tests submitted</span></div>
+        </mat-card>
+      </a>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="quick-stats" *ngIf="upcomingTests().length > 0">
+      <h2>{{ 'Upcoming Tests' | t }}</h2>
+      <div class="tests-grid">
+        <mat-card *ngFor="let test of upcomingTests()" class="test-card">
+          <mat-card-header>
+            <mat-card-title>{{ test.title }}</mat-card-title>
+            <mat-card-subtitle>
+              Starts: {{ test.startTime | date:'medium' }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p><strong>Questions:</strong> {{ test.questions?.length || 0 }}</p>
+            <p><strong>Duration:</strong> {{ test.duration }} minutes</p>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button color="primary" routerLink="/manage-tests">Manage</button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+
+    <section class="admin-analytics-grid">
+      <article class="analytics-card analytics-overview"><div class="analytics-heading"><div><span>PLATFORM OVERVIEW</span><h2>Live platform mix</h2></div><mat-icon>donut_large</mat-icon></div><div class="chart-box"><canvas #overviewChart></canvas></div></article>
+      <article class="analytics-card"><div class="analytics-heading"><div><span>ACTIVITY SNAPSHOT</span><h2>Tests and submissions</h2></div><mat-icon>bar_chart</mat-icon></div><div class="chart-box"><canvas #activityChart></canvas></div></article>
+      <article class="analytics-card analytics-wide"><div class="analytics-heading"><div><span>RECENT MOMENTUM</span><h2>Submission trend</h2></div><mat-icon>trending_up</mat-icon></div><div class="chart-box trend-box"><canvas #resultsTrendChart></canvas></div></article>
+    </section>
+  </div>
+</div>

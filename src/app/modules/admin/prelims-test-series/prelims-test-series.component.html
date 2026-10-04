@@ -1,0 +1,312 @@
+<!-- prelims-test-series.component.html -->
+<div class="test-series-container">
+  
+  <!-- Header -->
+  <div class="header">
+    <h1>{{ 'Prelims Test Series' | t }}</h1>
+    <button mat-raised-button color="primary" (click)="showCreateForm()" *ngIf="!isFormVisible()">
+      <mat-icon>add</mat-icon>{{ 'Create Test Series' | t }}</button>
+    <button mat-stroked-button (click)="hideForm()" *ngIf="isFormVisible()">
+      <mat-icon>close</mat-icon>
+      {{ 'Cancel' | t }}
+    </button>
+  </div>
+
+  <!-- Create/Edit Form -->
+  <div class="form-container" *ngIf="isFormVisible()">
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>
+          {{ isEditMode() ? 'Edit Test Series' : 'Create New Test Series' }}
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="testSeriesForm" (ngSubmit)="onSubmit()">
+          
+          <!-- Basic Information -->
+          <div class="form-section">
+            <h3 class="section-title">Basic Information</h3>
+            
+            <div class="form-grid">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>{{ 'Test Series Name (English) *' | t }}</mat-label>
+                <input matInput formControlName="name" placeholder="e.g., UPSC Prelims Test Series 2025">
+                <mat-icon matSuffix>title</mat-icon>
+                <mat-error *ngIf="testSeriesForm.get('name')?.hasError('required')">{{ 'Name is required' | t }}</mat-error>
+                <mat-error *ngIf="testSeriesForm.get('name')?.hasError('minlength')">{{ 'Name must be at least 3 characters' | t }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>{{ 'Test Series Name (Hindi)' | t }}</mat-label>
+                <input matInput formControlName="nameHi" placeholder="e.g., UPSC प्रीलिम्स टेस्ट सीरीज 2025">
+                <mat-icon matSuffix>translate</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>{{ 'Description (English) *' | t }}</mat-label>
+                <textarea matInput formControlName="description" rows="3" placeholder="Enter detailed description"></textarea>
+                <mat-icon matSuffix>description</mat-icon>
+                <mat-error *ngIf="testSeriesForm.get('description')?.hasError('required')">{{ 'Description is required' | t }}</mat-error>
+                <mat-error *ngIf="testSeriesForm.get('description')?.hasError('minlength')">{{ 'Description must be at least 10 characters' | t }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>{{ 'Description (Hindi)' | t }}</mat-label>
+                <textarea matInput formControlName="descriptionHi" rows="3" placeholder="हिंदी में विवरण दर्ज करें"></textarea>
+                <mat-icon matSuffix>translate</mat-icon>
+              </mat-form-field><mat-form-field appearance="outline"><mat-label>Introduction</mat-label><textarea matInput formControlName="intro" rows="5"></textarea></mat-form-field><mat-form-field appearance="outline"><mat-label>Introduction (Hindi)</mat-label><textarea matInput formControlName="introHi" rows="5"></textarea></mat-form-field>
+            </div>
+          </div>
+
+          <!-- Date Range -->
+          <div class="form-section">
+            <h3 class="section-title">{{ 'Date Range' | t }}</h3>
+            
+            <div class="form-grid date-range-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>{{ 'Start Date *' | t }}</mat-label>
+                <input matInput [matDatepicker]="startPicker" formControlName="startDate" (dateChange)="onStartDateChange()">
+                <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+                <mat-datepicker #startPicker></mat-datepicker>
+                <mat-error *ngIf="testSeriesForm.get('startDate')?.hasError('required')">{{ 'Start date is required' | t }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>{{ 'End Date *' | t }}</mat-label>
+                <input matInput [matDatepicker]="endPicker" formControlName="endDate">
+                <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+                <mat-datepicker #endPicker></mat-datepicker>
+                <mat-error *ngIf="testSeriesForm.get('endDate')?.hasError('required')">{{ 'End date is required' | t }}</mat-error>
+                <mat-error *ngIf="testSeriesForm.hasError('invalidDateRange')">{{ 'End date must be after start date' | t }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>{{ 'Status' | t }}</mat-label>
+                <mat-select formControlName="isActive">
+                  <mat-option [value]="true">{{ 'Active' | t }}</mat-option>
+                  <mat-option [value]="false">{{ 'Inactive' | t }}</mat-option>
+                </mat-select>
+                <mat-icon matSuffix>toggle_on</mat-icon>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Test Dates -->
+          <div class="form-section">
+            <div class="section-header">
+              <h3 class="section-title">Test Dates ({{ testDatesCount }})</h3>
+              <div class="section-actions">
+                <button type="button" mat-stroked-button color="primary" (click)="addTestDate()">
+                  <mat-icon>add</mat-icon>{{ 'Add Date' | t }}</button>
+                <button type="button" mat-stroked-button color="primary" (click)="addAllDatesBetweenRange()" [disabled]="!testSeriesForm.get('startDate')?.value || !testSeriesForm.get('endDate')?.value">
+                  <mat-icon>event_repeat</mat-icon>{{ 'Add Weekly Dates' | t }}</button>
+                <button type="button" mat-stroked-button color="primary" (click)="addWeeklyTestDates()" [disabled]="!testSeriesForm.get('startDate')?.value || !testSeriesForm.get('endDate')?.value">
+                  <mat-icon>calendar_today</mat-icon>{{ 'Add Custom Weekly' | t }}</button>
+                <button type="button" mat-stroked-button color="warn" (click)="clearAllTestDates()" *ngIf="testDatesCount > 0">
+                  <mat-icon>clear_all</mat-icon>{{ 'Clear All' | t }}</button>
+              </div>
+            </div>
+
+            <div class="test-dates-list" formArrayName="testDates">
+              <div *ngFor="let dateControl of testDateControls; let i = index; trackBy: trackByIndex" 
+                   class="test-date-item" [formGroupName]="i">
+                <div class="date-row">
+                  <mat-form-field appearance="outline" class="date-field">
+                    <mat-label>{{ 'Date *' | t }}</mat-label>
+                    <input matInput [matDatepicker]="datePicker" formControlName="date" 
+                           [min]="getMinDateForTestDates()" [max]="getMaxDateForTestDates()">
+                    <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #datePicker></mat-datepicker>
+                    <mat-error *ngIf="dateControl.get('date')?.hasError('required')">{{ 'Date required' | t }}</mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="time-field">
+                    <mat-label>{{ 'Time' | t }}</mat-label>
+                    <input matInput type="time" formControlName="time">
+                    <mat-icon matSuffix>schedule</mat-icon>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="duration-field">
+                    <mat-label>{{ 'Duration (mins)' | t }}</mat-label>
+                    <input matInput type="number" formControlName="duration" min="30">
+                    <mat-icon matSuffix>timer</mat-icon>
+                    <mat-error *ngIf="dateControl.get('duration')?.hasError('min')">{{ 'Minimum 30 mins' | t }}</mat-error>
+                  </mat-form-field>
+
+                  <button type="button" mat-icon-button color="warn" (click)="removeTestDate(i)" 
+                          [disabled]="testDatesCount <= 1" matTooltip="Remove date">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="testDatesCount === 0" class="no-dates-message">
+              <mat-icon>event_note</mat-icon>
+              <p>{{ 'No test dates added. Click "Add Date" to schedule test dates.' | t }}</p>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button type="button" mat-stroked-button (click)="hideForm()">{{ 'Cancel' | t }}</button>
+            <button type="submit" mat-raised-button color="primary" [disabled]="submitting() || !testSeriesForm.valid || testDatesCount === 0">
+              <mat-spinner diameter="20" *ngIf="submitting()"></mat-spinner>
+              <span *ngIf="!submitting()">
+                {{ isEditMode() ? 'Update' : 'Create' }} Test Series ({{ testDatesCount }} dates)
+              </span>
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters" *ngIf="!isFormVisible()">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>{{ 'Search Test Series' | t }}</mat-label>
+      <input matInput [(ngModel)]="searchTerm" (ngModelChange)="filterTestSeries()" placeholder="Search by name or description...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>{{ 'Filter by Status' | t }}</mat-label>
+      <mat-select [(value)]="statusFilter" (selectionChange)="filterTestSeries()">
+        <mat-option value="all">{{ 'All Series' | t }}</mat-option>
+        <mat-option value="active">{{ 'Active Only' | t }}</mat-option>
+        <mat-option value="inactive">{{ 'Inactive Only' | t }}</mat-option>
+      </mat-select>
+      <mat-icon matSuffix>filter_list</mat-icon>
+    </mat-form-field>
+
+    <button mat-stroked-button (click)="loadTestSeries()" [disabled]="loading()">
+      <mat-icon>refresh</mat-icon>
+      {{ 'Refresh' | t }}
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading">
+    <mat-spinner></mat-spinner>
+    <p>{{ 'Loading test series...' | t }}</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading() && !isFormVisible() && filteredTestSeries().length === 0" class="no-data">
+    <mat-card>
+      <mat-card-content>
+        <mat-icon class="no-data-icon">assignment_late</mat-icon>
+        <h3>{{ 'No test series found' | t }}</h3>
+        <p *ngIf="searchTerm || statusFilter !== 'all'">{{ 'No test series match your current filters. Try adjusting your search criteria.' | t }}</p>
+        <p *ngIf="!searchTerm && statusFilter === 'all'">{{ 'You haven\'t created any test series yet.' | t }}</p>
+        <button mat-raised-button color="primary" (click)="showCreateForm()">
+          <mat-icon>add</mat-icon>{{ 'Create Your First Test Series' | t }}</button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Test Series Grid -->
+  <div class="test-series-grid" *ngIf="!loading() && !isFormVisible() && filteredTestSeries().length > 0">
+    <mat-card *ngFor="let series of filteredTestSeries()" class="series-card">
+      <mat-card-header>
+        <mat-card-title>
+          {{ series.name }}
+          <span class="series-title-hi" *ngIf="series.nameHi">/ {{ series.nameHi }}</span>
+        </mat-card-title>
+        <mat-card-subtitle>
+          <div class="status-badge" [class.active]="series.isActive" [class.inactive]="!series.isActive">
+            <mat-icon>{{ series.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+            {{ (series.isActive ? 'Active' : 'Inactive') | t }}
+          </div>
+          <div class="test-count">
+            <mat-icon>quiz</mat-icon>
+            {{ series.totalTests || series.testDates?.length || 0 }} Tests
+          </div>
+        </mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <p class="description">{{ series.description }}</p>
+        <p class="description-hi" *ngIf="series.descriptionHi">{{ series.descriptionHi }}</p>
+        
+        <div class="series-details">
+          <div class="detail-item">
+            <mat-icon>event</mat-icon>
+            <span><strong>{{ 'Date Range:' | t }}</strong> {{ formatDateRange(series.startDate, series.endDate) }}</span>
+          </div>
+          <div class="detail-item">
+            <mat-icon>calendar_today</mat-icon>
+            <span><strong>{{ 'Total Tests:' | t }}</strong> {{ series.testDates?.length || 0 }}</span>
+          </div>
+        </div>
+
+        <!-- Test Dates Preview -->
+        <div class="test-dates-preview" *ngIf="series.testDates && series.testDates.length > 0">
+          <div class="test-dates-header">
+            <mat-icon>event_note</mat-icon>
+            <span>{{ 'Test Dates' | t }}</span>
+          </div>
+          <div class="test-dates-chip-list">
+            <mat-chip *ngFor="let testDate of series.testDates | slice:0:5">
+              {{ formatDate(testDate.date) }}
+              <span class="chip-time" *ngIf="testDate.time">{{ testDate.time }}</span>
+            </mat-chip>
+            <mat-chip *ngIf="series.testDates.length > 5" class="more-chip">
+              +{{ series.testDates.length - 5 }} more
+            </mat-chip>
+          </div>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions align="end">
+        <div class="series-actions">
+          <button mat-button color="primary" (click)="viewTestSeries(series._id || '')">
+            <mat-icon>visibility</mat-icon>{{ 'View' | t }}</button>
+          
+          <button mat-button (click)="showEditForm(series)">Add / Edit Intro</button><button mat-button color="primary" (click)="showEditForm(series)">
+            <mat-icon>edit</mat-icon>
+            {{ 'Edit' | t }}
+          </button>
+          
+          <button mat-button 
+                  [color]="series.isActive ? 'warn' : 'accent'" 
+                  (click)="toggleStatus(series)">
+            <mat-icon>{{ series.isActive ? 'toggle_off' : 'toggle_on' }}</mat-icon>
+            {{ series.isActive ? 'Deactivate' : 'Activate' }}
+          </button>
+          
+          <button mat-button color="warn" (click)="deleteTestSeries(series._id || '')">
+            <mat-icon>delete</mat-icon>
+            {{ 'Delete' | t }}
+          </button>
+        </div>
+        <section class="paper-list" *ngIf="series.testDates?.length">
+          <header class="paper-list-heading">
+            <h4><mat-icon>description</mat-icon>Exam papers</h4>
+            <span>{{ series.testDates.length }} scheduled</span>
+          </header>
+          <article *ngFor="let slot of series.testDates" class="paper-row">
+            <div class="paper-date">
+              <mat-icon>event</mat-icon>
+              <span>{{ formatDate(slot.date) }}<small>{{ slot.time }} · {{ slot.duration }} min</small></span>
+            </div>
+            <div class="paper-info">
+              <strong>{{ slot.exam?.title || 'No paper created yet' }}</strong>
+              <span class="paper-status" [class.ready]="!!slot.exam">{{ slot.exam ? 'Paper ready' : 'Awaiting paper' }}</span>
+            </div>
+            <div class="paper-actions">
+              <button mat-stroked-button color="primary" (click)="openPaperDialog(series, slot)">
+                <mat-icon>{{ slot.exam ? 'edit' : 'add' }}</mat-icon>{{ slot.exam ? 'Edit paper' : 'Create paper' }}
+              </button>
+              <button mat-button *ngIf="slot.exam" (click)="openReopen(series, slot.exam)">
+                <mat-icon>lock_open</mat-icon>Reopen
+              </button>
+            </div>
+          </article>
+        </section>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

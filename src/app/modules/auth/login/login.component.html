@@ -1,0 +1,168 @@
+<div class="admin-login-portal">
+  <!-- Left Panel - Illustration -->
+  <div class="left-illustration">
+    <div class="illustration-content">
+      <div class="admin-avatar">
+        <mat-icon>admin_panel_settings</mat-icon>
+      </div>
+      <h2 class="illustration-title">{{ 'ThinkCivil Admin Portal' | t }}</h2>
+      <p class="illustration-text">{{ 'Complete control over your IAS academy' | t }}</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <mat-icon>assessment</mat-icon>
+          </div>
+          <h4>{{ 'Analytics' | t }}</h4>
+          <p>{{ 'Performance insights' | t }}</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <mat-icon>people</mat-icon>
+          </div>
+          <h4>{{ 'Manage Users' | t }}</h4>
+          <p>{{ 'Student & Admin control' | t }}</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <mat-icon>quiz</mat-icon>
+          </div>
+          <h4>{{ 'Tests' | t }}</h4>
+          <p>{{ 'Create & analyze' | t }}</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <mat-icon>insights</mat-icon>
+          </div>
+          <h4>{{ 'Reports' | t }}</h4>
+          <p>{{ 'Detailed analysis' | t }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel - Login Form -->
+  <div class="login-form-panel">
+    <div class="form-container">
+      <div class="form-header">
+        <div class="logo-section">
+          <span class="logo-badge">TC</span>
+          <div class="logo-text">
+            <span class="logo-main">ThinkCivil</span>
+            <span class="logo-sub">{{ 'Admin' | t }}</span>
+          </div>
+        </div>
+
+        <div class="time-display">
+          <mat-icon>schedule</mat-icon>
+          {{ currentTime | date:'HH:mm' }}
+        </div>
+      </div>
+
+      <div class="welcome-section">
+        <h1>{{ 'Welcome Back' | t }}</h1>
+        <p class="subtitle">{{ 'Sign in to your admin account' | t }}</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="admin-form">
+        <!-- Email Input -->
+        <div class="input-group">
+          <label class="input-label">
+            <mat-icon class="label-icon">email</mat-icon>
+            <span>{{ 'Administrator Email' | t }}</span>
+          </label>
+          <div class="input-wrapper">
+            <input type="email" formControlName="email" placeholder="Enter Email" class="admin-input"
+              [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+            <mat-icon class="input-icon">person</mat-icon>
+          </div>
+          <div class="error-message" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+            <mat-icon>error</mat-icon>
+            <span>{{ getEmailError() }}</span>
+          </div>
+        </div>
+
+        <!-- Password Input -->
+        <div class="input-group">
+          <label class="input-label">
+            <mat-icon class="label-icon">lock</mat-icon>
+            <span>{{ 'Password' | t }}</span>
+          </label>
+          <div class="input-wrapper">
+            <input [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Enter Password"
+              class="admin-input"
+              [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+            <mat-icon class="input-icon">key</mat-icon>
+            <button type="button" class="toggle-password" (click)="hidePassword = !hidePassword">
+              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+          </div>
+          <div class="error-message" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+            <mat-icon>error</mat-icon>
+            <span>{{ getPasswordError() }}</span>
+          </div>
+        </div>
+
+        <!-- Remember & Forgot -->
+        <!-- <div class="form-actions">
+          <div class="remember-me">
+            <mat-checkbox formControlName="rememberMe" color="primary">
+              Remember this device
+            </mat-checkbox>
+          </div>
+          <a href="#" class="forgot-link">Need help signing in?</a>
+        </div> -->
+
+        <!-- Submit Button -->
+        <button type="submit" class="submit-btn" [disabled]="!loginForm.valid || loading()" [class.loading]="loading()">
+          <div class="btn-content">
+            <span class="btn-icon" *ngIf="!loading()">
+              <mat-icon>arrow_forward</mat-icon>
+            </span>
+            <span class="btn-spinner" *ngIf="loading()">
+              <div class="spinner"></div>
+            </span>
+            <span class="btn-text">{{ loading() ? 'Authenticating...' : 'Access Portal' }}</span>
+          </div>
+        </button>
+
+        <!-- Security Badge -->
+        <div class="security-badge">
+          <div class="badge-content">
+            <mat-icon>verified_user</mat-icon>
+            <div class="badge-text">
+              <strong>{{ 'Secure Connection' | t }}</strong>
+              <span>{{ '256-bit encryption' | t }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button mat-stroked-button type="button" class="action-btn" (click)="openPublicSite()">
+            <mat-icon>public</mat-icon>{{ 'Visit Public Site' | t }}</button>
+
+
+
+        </div>
+      </form>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <div class="footer-links">
+          <a href="#">{{ 'Privacy Policy' | t }}</a>
+          <span class="divider">•</span>
+          <a href="#">{{ 'Terms of Service' | t }}</a>
+          <span class="divider">•</span>
+          <a href="#">{{ 'Support' | t }}</a>
+        </div>
+        <div class="copyright">
+          © 2024 ThinkCivil IAS Academy • v3.5.0
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

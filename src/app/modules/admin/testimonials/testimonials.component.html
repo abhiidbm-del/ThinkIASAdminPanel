@@ -1,0 +1,42 @@
+<div class="page">
+  <div class="page-header">
+    <div><h2>{{ 'Testimonials' | t }}</h2><p>{{ 'Manage testimonials shown on the website.' | t }}</p></div>
+    <button class="primary" (click)="openCreate()">{{ '+ Add testimonial' | t }}</button>
+  </div>
+
+  <div *ngIf="error" class="message error">{{ error | t }}</div>
+
+  <form *ngIf="showForm" class="form-card" (ngSubmit)="save()">
+    <div class="form-header"><h3>{{ (editingId ? 'Edit testimonial' : 'New testimonial') | t }}</h3><button type="button" class="icon-button" (click)="closeForm()">&times;</button></div>
+    <div class="form-grid">
+      <label>{{ 'Name' | t }}<input name="name" [(ngModel)]="form.name" required maxlength="100"></label>
+      <label>{{ 'Name (Hindi)' | t }}<input name="nameHindi" [(ngModel)]="form.nameHindi"></label>
+      <label>{{ 'Subtitle' | t }}<input name="subtitle" [(ngModel)]="form.subtitle" required maxlength="150" placeholder="e.g. UPSC Aspirant"></label>
+      <label>{{ 'Subtitle (Hindi)' | t }}<input name="subtitleHindi" [(ngModel)]="form.subtitleHindi"></label>
+      <label>{{ 'Testimonial' | t }}<textarea name="description" [(ngModel)]="form.description" required maxlength="1000" rows="5"></textarea></label>
+      <label>{{ 'Testimonial (Hindi)' | t }}<textarea name="descriptionHindi" [(ngModel)]="form.descriptionHindi" rows="5"></textarea></label>
+      <label>{{ 'Rating' | t }}<select name="rating" [(ngModel)]="form.rating"><option *ngFor="let star of stars(5)" [ngValue]="star">{{ star }} / 5</option></select></label>
+      <label>{{ 'Profile image' | t }} <small>{{ '(optional, max 5 MB)' | t }}</small><input type="file" accept="image/*" (change)="onImageSelected($event)"></label>
+      <div class="image-preview" *ngIf="imagePreview"><img [src]="imagePreview" alt="Selected testimonial image"><button type="button" class="remove-image" (click)="removeSelectedImage()">{{ 'Remove image' | t }}</button></div>
+    </div>
+    <div class="form-actions"><button type="button" class="secondary" (click)="closeForm()">{{ 'Cancel' | t }}</button><button type="submit" class="primary" [disabled]="saving">{{ (saving ? 'Saving...' : (editingId ? 'Update' : 'Save')) | t }}</button></div>
+  </form>
+
+  <div *ngIf="loading" class="state">{{ 'Loading testimonials...' | t }}</div>
+  <div *ngIf="!loading && testimonials.length === 0" class="state">{{ 'No testimonials added yet.' | t }}</div>
+  <div *ngIf="!loading && testimonials.length" class="table-card">
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>{{ 'Student' | t }}</th><th>{{ 'Rating' | t }}</th><th>{{ 'Testimonial' | t }}</th><th>{{ 'Actions' | t }}</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let item of testimonials">
+            <td><div class="student"><img *ngIf="item.image" [src]="item.image" alt=""><div><strong>{{ item.name | t }}</strong><span>{{ item.subtitle }}</span></div></div></td>
+            <td><span class="stars"><span *ngFor="let star of stars(5)" [class.filled]="isStarFilled(star, item.rating)">&#9733;</span></span></td>
+            <td class="description">{{ item.description }}</td>
+            <td class="actions"><button (click)="openEdit(item)">{{ 'Edit' | t }}</button><button class="danger" (click)="remove(item)">{{ 'Delete' | t }}</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,245 @@
+.admin-results-container {
+  padding: 20px;
+}
+
+.header {
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  color: #3f51b5;
+  margin-bottom: 8px;
+}
+
+.student-filter {
+  margin-top: 20px;
+  max-width: 400px;
+}
+
+.student-info-header {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.student-info-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.student-email {
+  color: #666;
+  font-size: 0.9em;
+  font-weight: normal;
+}
+
+.loading, .no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+}
+
+.no-results {
+  text-align: center;
+  color: #666;
+}
+
+.results-table {
+  width: 100%;
+}
+
+.test-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.test-info small {
+  color: #666;
+  font-size: 0.85em;
+}
+
+.unread-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  /* background-color: #ff4444; */
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  margin-top: 5px;
+}
+
+.unread-badge mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+.rank-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: darkblue;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.high-score {
+  color: #4caf50;
+  font-weight: bold;
+}
+
+.medium-score {
+  color: #ff9800;
+  font-weight: bold;
+}
+
+.low-score {
+  color: #f44336;
+  font-weight: bold;
+}
+
+/* Chat Styles */
+.participant-info {
+  margin-bottom: 15px;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  background-color: #f9f9f9;
+}
+
+.message {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  max-width: 80%;
+  position: relative;
+}
+
+.message.sent {
+  background-color: #e3f2fd;
+  margin-left: auto;
+  border-bottom-right-radius: 0;
+}
+
+.message.received {
+  background-color: #f5f5f5;
+  margin-right: auto;
+  border-bottom-left-radius: 0;
+}
+
+.message.unread {
+  background-color: #fff3e0;
+  border-left: 3px solid #ff9800;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+  font-size: 0.85em;
+}
+
+.sender-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.message-time {
+  color: #666;
+  font-size: 0.8em;
+}
+
+.edited-badge {
+  color: #666;
+  font-style: italic;
+  font-size: 0.8em;
+}
+
+.edit-btn, .delete-btn {
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  margin-left: 5px;
+}
+
+.edit-btn mat-icon, .delete-btn mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.delete-btn {
+  color: #f44336;
+}
+
+.message-content {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.reply-to {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px dashed #ddd;
+  color: #666;
+  font-size: 0.85em;
+}
+
+.no-messages, .loading-messages {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+}
+
+.chat-input {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+/* Scrollbar styles */
+.chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

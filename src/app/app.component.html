@@ -1,0 +1,81 @@
+<!-- Check for fullscreen mode -->
+<div>
+  <div class="app-container" *ngIf="authService.isLoggedIn(); else loginTemplate">
+    <!-- Top Toolbar -->
+    <mat-toolbar color="primary" class="app-toolbar">
+      <div class="toolbar-left">
+        <button mat-icon-button (click)="toggleSidenav()" class="menu-btn">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="app-title">{{ title }}</span>
+      </div>
+
+      <span class="spacer"></span>
+
+      <div class="toolbar-right"><app-language-toggle></app-language-toggle>
+        <!-- User Profile Badge -->
+        
+
+        <button mat-stroked-button color="accent" (click)="logout()" class="logout-btn">
+          <mat-icon>logout</mat-icon>
+          <span class="logout-text">{{ 'Logout' | t }}</span>
+        </button>
+      </div>
+    </mat-toolbar>
+
+    <!-- Main Container -->
+    <mat-sidenav-container class="main-container" [hasBackdrop]="isMobile()" autosize>
+      <!-- Side Navigation -->
+      <mat-sidenav #sidenav [mode]="getSidenavMode()" [opened]="isSidenavOpen()"
+        (openedChange)="onSidenavToggle($event)" class="app-sidenav">
+        <mat-nav-list>
+          <ng-container *ngFor="let item of authService.menuItems()">
+            <a *ngIf="!item.children?.length" mat-list-item [routerLink]="item.path"
+              routerLinkActive="active-link" class="nav-item" (click)="closeSidenavOnMobile()">
+              <mat-icon matListIcon class="nav-icon">{{ getMenuIcon(item) }}</mat-icon>
+              <span class="nav-text">{{ item.name | t }}</span>
+            </a>
+
+            <button *ngIf="item.children?.length" type="button" class="nav-item nav-parent"
+              [class.active-parent]="isMenuExpanded(item.name)" (click)="toggleMenu(item.name)">
+              <mat-icon class="nav-icon">{{ getMenuIcon(item) }}</mat-icon>
+              <span class="nav-text">{{ item.name | t }}</span>
+              <mat-icon class="expand-icon">{{ isMenuExpanded(item.name) ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+
+            <div *ngIf="item.children?.length && isMenuExpanded(item.name)" class="submenu">
+              <a mat-list-item *ngFor="let child of item.children" [routerLink]="child.path"
+                routerLinkActive="active-link" class="nav-item submenu-item" (click)="closeSidenavOnMobile()">
+                <mat-icon matListIcon class="nav-icon">{{ getMenuIcon(child) }}</mat-icon>
+                <span class="nav-text">{{ child.name | t }}</span>
+              </a>
+            </div>
+          </ng-container>
+        </mat-nav-list>
+      </mat-sidenav>
+  
+      <!-- Main Content -->
+      <mat-sidenav-content class="content-area">
+        <section class="admin-page-banner" *ngIf="showAdminPageBanner()" aria-labelledby="admin-page-title">
+          <div class="banner-content">
+            <span class="banner-kicker">ThinkCivil IAS · Admin workspace</span>
+          <!-- <p class="admin-welcome">Welcome, Administrator!</p> -->
+            <h1 id="admin-page-title">Welcome to {{ adminPageTitle() }}</h1>
+            <p>{{ adminPageSubtitle() }}</p>
+            <span class="banner-rule" aria-hidden="true"></span>
+          </div>
+        </section>
+        <div class="content-wrapper">
+          <router-outlet></router-outlet>
+        </div>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
+  </div>
+</div>
+
+
+
+<!-- Login Template -->
+<ng-template #loginTemplate>
+  <router-outlet></router-outlet>
+</ng-template>

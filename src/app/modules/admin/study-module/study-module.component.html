@@ -1,0 +1,850 @@
+<!-- study-module.component.html -->
+<div class="admin-container">
+  <!-- Header -->
+  <div class="admin-header">
+    <div class="header-left">
+      <i class="fa fa-graduation-cap header-icon"></i>
+      <h2>Study Modules Admin</h2>
+    </div>
+    <div class="header-actions">
+      <button class="action-btn primary" (click)="openCreateModal()" *ngIf="showModuleList">
+        <i class="fa fa-plus-circle"></i>
+        <span>New Module</span>
+      </button>
+      <!-- <div class="directory-actions" *ngIf="!showModuleList && currentItem">
+        <button class="action-btn primary" (click)="openCreateFolderModal()">
+          <i class="fa fa-folder-plus"></i>
+          <span>New Folder</span>
+        </button>
+        <button class="action-btn success" (click)="openCreateFileModal()">
+          <i class="fa fa-link"></i>
+          <span>Add File</span>
+        </button>
+        <button class="action-btn test-create-btn" (click)="openCreateTestModalForModule()" *ngIf="currentItem">
+          <i class="fa fa-puzzle-piece"></i>
+          <span>Create Test</span>
+        </button>
+      </div> -->
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages-container" *ngIf="successMessage || errorMessage">
+    <div class="message success" *ngIf="successMessage">
+      <i class="fa fa-check-circle"></i>
+      {{ successMessage }}
+      <button class="message-close" (click)="successMessage = ''">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <div class="message error" *ngIf="errorMessage">
+      <i class="fa fa-exclamation-circle"></i>
+      {{ errorMessage }}
+      <button class="message-close" (click)="errorMessage = ''">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" *ngIf="!showModuleList">
+    <div class="breadcrumb-container">
+      <button class="back-button" (click)="navigateUp()">
+        <i class="fa fa-chevron-left"></i>
+        <span>Back</span>
+      </button>
+      <div class="breadcrumb-items">
+        <span *ngFor="let crumb of breadcrumbs; let i = index; let last = last" 
+              class="breadcrumb-item" [class.active]="last" (click)="navigateBreadcrumb(crumb)">
+          <i class="fa" [class.fa-home]="crumb.id === 'modules'" [class.fa-folder]="crumb.id !== 'modules'"></i>
+          {{ crumb.name }}
+          <i class="fa fa-chevron-right" *ngIf="!last"></i>
+        </span>
+      </div>
+    </div>
+    <div class="breadcrumb-info" *ngIf="currentItem">
+      <span class="info-item">
+        <i class="fa fa-clock"></i>
+        Updated: {{ currentItem.updatedAt | date:'mediumDate' }}
+      </span>
+      <span class="info-item">
+        <i class="fa fa-file"></i>
+        {{ currentItems.length }} items
+      </span>
+      <span class="info-item" *ngIf="hasHindiName(currentItem)">
+        <i class="fa fa-language"></i>
+        {{ currentItem.name.hindi }}
+      </span>
+      <span class="info-item test-count" *ngIf="getModuleTestCount(currentItem._id) > 0">
+        <i class="fa fa-puzzle-piece"></i>
+        Tests: {{ getModuleTestCount(currentItem._id) }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="loading-content">
+      <div class="spinner">
+        <i class="fa fa-spinner fa-spin"></i>
+      </div>
+      <p>Loading...</p>
+    </div>
+  </div>
+
+  <!-- Module List View -->
+  <div *ngIf="showModuleList && !loading" class="module-list-view">
+    <div class="view-header">
+      <h3>
+        <i class="fa fa-book"></i>
+        Available Modules
+      </h3>
+      <div class="view-info">
+        <span class="info-badge">
+          <i class="fa fa-cube"></i>
+          {{ modules.length }} modules
+        </span>
+        <!-- <span class="info-badge" *ngIf="getModulesWithTestsCount() > 0">
+          <i class="fa fa-puzzle-piece"></i>
+          {{ getModulesWithTestsCount() }} with tests
+        </span> -->
+        <button class="btn primary" (click)="toggleReorderMode()" *ngIf="modules.length > 0">
+          <i class="fa" [class.fa-sort]="!reorderMode" [class.fa-check]="reorderMode"></i>
+          {{ reorderMode ? 'Done' : 'Reorder Modules' }}
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="modules.length === 0" class="empty-modules">
+      <div class="empty-icon">
+        <i class="fa fa-book-open"></i>
+      </div>
+      <h3>No Modules Found</h3>
+      <p>Create your first module to start organizing free resources</p>
+      <button class="btn primary" (click)="openCreateModal()">
+        <i class="fa fa-plus"></i>
+        Create Module
+      </button>
+    </div>
+
+    <!-- Reorder Controls -->
+    <div class="reorder-controls-bar" *ngIf="reorderMode">
+      <div class="reorder-info">
+        <i class="fa fa-info-circle"></i>
+        <span>Drag or use buttons to reorder modules</span>
+      </div>
+      <div class="reorder-actions">
+        <button class="btn secondary" (click)="resetModuleOrder()">
+          <i class="fa fa-undo"></i>
+          Reset
+        </button>
+        <button class="btn success" (click)="saveModuleOrder()">
+          <i class="fa fa-save"></i>
+          Save Order
+        </button>
+      </div>
+    </div>
+
+    <!-- Modules Grid -->
+    <div class="modules-grid">
+      <div *ngFor="let module of modules; let i = index" class="module-card" 
+           [class.reorder-mode]="reorderMode" [class.has-tests]="getModuleTestCount(module._id) > 0">
+        
+        <div class="order-badge">{{ i + 1 }}</div>
+        
+        <div class="reorder-buttons" *ngIf="reorderMode">
+          <button class="reorder-btn up" (click)="moveModuleUp(i)" [disabled]="i === 0" title="Move Up">
+            <i class="fa fa-chevron-up"></i>
+          </button>
+          <button class="reorder-btn down" (click)="moveModuleDown(i)" [disabled]="i === modules.length - 1" title="Move Down">
+            <i class="fa fa-chevron-down"></i>
+          </button>
+          <button class="reorder-btn top" (click)="moveModuleToTop(i)" [disabled]="i === 0" title="Move to Top">
+            <i class="fa fa-chevron-circle-up"></i>
+          </button>
+          <button class="reorder-btn bottom" (click)="moveModuleToBottom(i)" [disabled]="i === modules.length - 1" title="Move to Bottom">
+            <i class="fa fa-chevron-circle-down"></i>
+          </button>
+        </div>
+        
+        <div class="module-icon">
+          <img [src]="getImageUrl(module.image)" [alt]="module.name.english" class="module-thumb">
+        </div>
+
+        <!-- Test Badge -->
+        <!-- <div class="test-badge" *ngIf="getModuleTestCount(module._id) > 0" (click)="$event.stopPropagation()">
+          <i class="fa fa-puzzle-piece"></i>
+          <span>{{ getModuleTestCount(module._id) }} Test(s)</span>
+        </div> -->
+        
+        <div class="module-info" (click)="!reorderMode && navigateToModule(module)">
+          <div class="module-name">
+            <div class="en-name">
+              <small>EN</small>
+              <h4>{{ module.name.english }}</h4>
+            </div>
+            <div class="hi-name" *ngIf="hasHindiName(module)">
+              <small>HI</small>
+              <h4>{{ module.name.hindi }}</h4>
+            </div>
+          </div>
+          <div class="module-meta">
+            <span class="meta-item">
+              <i class="fa fa-calendar"></i>
+              {{ module.createdAt | date:'mediumDate' }}
+            </span>
+            <span class="meta-item">
+              <i class="fa fa-sort-numeric-asc"></i>
+              Position: {{ i + 1 }}
+            </span>
+            <span class="meta-item" [class.active]="module.isActive" [class.inactive]="!module.isActive">
+              <i class="fa" [class.fa-eye]="module.isActive" [class.fa-eye-slash]="!module.isActive"></i>
+              {{ module.isActive ? 'Active' : 'Inactive' }}
+            </span>
+            <span class="meta-item test-meta" *ngIf="getModuleTestCount(module._id) > 0">
+              <i class="fa fa-puzzle-piece"></i>
+              Tests: {{ getModuleTestCount(module._id) }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="module-actions" *ngIf="!reorderMode">
+          <button class="action-btn-small edit" (click)="openEditModal(module); $event.stopPropagation()" title="Edit">
+            <i class="fa fa-edit"></i>
+          </button>
+          <button class="action-btn-small status" (click)="toggleStatus(module); $event.stopPropagation()" 
+                  [title]="module.isActive ? 'Deactivate' : 'Activate'">
+            <i class="fa" [class.fa-eye]="module.isActive" [class.fa-eye-slash]="!module.isActive"></i>
+          </button>
+          <button class="action-btn-small delete" (click)="deleteModule(module._id); $event.stopPropagation()" title="Delete">
+            <i class="fa fa-trash"></i>
+          </button>
+          <!-- Test Management Button -->
+          <!-- <button class="action-btn-small test-manage" (click)="openTestManagement(module); $event.stopPropagation()" title="Manage Tests">
+            <i class="fa fa-puzzle-piece"></i>
+          </button> -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Directory View -->
+  <div *ngIf="!showModuleList && !loading" class="directory-view">
+    <div class="directory-header">
+      <div class="directory-title">
+        <i class="fa" [class.fa-cube]="currentItem?.type === 'module'" [class.fa-folder]="currentItem?.type === 'folder'"></i>
+        <div>
+          <h3>{{ currentItem?.name?.english }}</h3>
+          <div class="hindi-title" *ngIf="hasHindiName(currentItem!)">
+            {{ currentItem?.name?.hindi }}
+          </div>
+          <div class="test-info-badge" *ngIf="getModuleTestCount(currentItem!._id) > 0">
+            <i class="fa fa-puzzle-piece"></i>
+            Tests: {{ getModuleTestCount(currentItem!._id) }}
+          </div>
+        </div>
+      </div>
+      <div class="directory-actions" *ngIf="currentItem">
+        <button class="action-btn primary" (click)="openCreateFolderModal()">
+          <i class="fa fa-folder-plus"></i>
+          <span>New Folder</span>
+        </button>
+        <button class="action-btn success" (click)="openCreateFileModal()">
+          <i class="fa fa-link"></i>
+          <span>Add File</span>
+        </button>
+        <button class="action-btn test-create-btn" (click)="openCreateTestModalForModule()">
+          <i class="fa fa-puzzle-piece"></i>
+          <span>Create Test</span>
+        </button>
+        <button class="action-btn test-manage-btn" (click)="openTestManagement(currentItem!)">
+          <i class="fa fa-list"></i>
+          <span>Manage Tests</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="currentItems.length === 0" class="empty-folder">
+      <div class="empty-icon">
+        <i class="fa fa-folder-open"></i>
+      </div>
+      <h3>Empty {{ currentItem?.type === 'module' ? 'Module' : 'Folder' }}</h3>
+      <p>This {{ currentItem?.type === 'module' ? 'module' : 'folder' }} doesn't contain any items</p>
+      <div class="empty-actions">
+        <button class="btn primary" (click)="openCreateFolderModal()">
+          <i class="fa fa-folder-plus"></i>
+          Create Folder
+        </button>
+        <button class="btn success" (click)="openCreateFileModal()">
+          <i class="fa fa-link"></i>
+          Add File Link
+        </button>
+        <button class="btn test-create-btn" (click)="openCreateTestModalForModule()">
+          <i class="fa fa-puzzle-piece"></i>
+          Create Test
+        </button>
+      </div>
+    </div>
+
+    <!-- Items Grid -->
+    <div class="items-grid">
+      <!-- Folders -->
+      <div *ngFor="let item of currentItems">
+        <div *ngIf="item.type === 'folder'" class="folder-item" (click)="navigateTo(item)">
+          <div class="folder-icon">
+            <i class="fa fa-folder"></i>
+          </div>
+          <div class="item-info">
+            <span class="name">{{ item.name.english }}</span>
+            <span class="hindi-name-small" *ngIf="hasHindiName(item)">{{ item.name.hindi }}</span>
+            <span class="type">
+              <i class="fa fa-folder"></i>
+              Folder
+            </span>
+          </div>
+          <div class="folder-arrow">
+            <i class="fa fa-chevron-right"></i>
+          </div>
+          <div class="item-actions">
+            <button class="action-btn-small edit" (click)="openRenameModal(item); $event.stopPropagation()" title="Rename">
+              <i class="fa fa-edit"></i>
+            </button>
+            <button class="action-btn-small delete" (click)="openDeleteModal(item); $event.stopPropagation()" title="Delete">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Files -->
+        <div *ngIf="item.type === 'file'" class="file-item" (click)="openFile(item)">
+          <div class="file-icon" [ngStyle]="{'background-color': getFileIconColor(item)}">
+            <i [class]="getFileIconClass(item)"></i>
+          </div>
+          <div class="item-info">
+            <span class="name">{{ item.name.english }}</span>
+            <span class="hindi-name-small" *ngIf="hasHindiName(item)">{{ item.name.hindi }}</span>
+            <span class="file-description" *ngIf="item.fileDescription">
+              <i class="fa fa-info-circle"></i>
+              {{ item.fileDescription }}
+            </span>
+            <span class="type">
+              <i class="fa fa-file"></i>
+              {{ getFileTypeLabel(item) }}
+            </span>
+            <span class="link-preview">
+              <i class="fa fa-link"></i>
+              {{ item.fileLink?.substring(0, 50) }}...
+            </span>
+          </div>
+          <div class="file-action">
+            <i class="fa fa-external-link"></i>
+          </div>
+          <div class="item-actions">
+            <button class="action-btn-small edit" (click)="openEditFileModal(item); $event.stopPropagation()" title="Edit">
+              <i class="fa fa-edit"></i>
+            </button>
+            <button class="action-btn-small rename" (click)="openRenameModal(item); $event.stopPropagation()" title="Rename">
+              <i class="fa fa-i-cursor"></i>
+            </button>
+            <button class="action-btn-small delete" (click)="openDeleteModal(item); $event.stopPropagation()" title="Delete">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODALS ============ -->
+
+<!-- Create/Edit Module Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditing ? 'Edit Module' : 'Create New Module' }}</h3>
+      <button class="close-btn" (click)="closeModal()">&times;</button>
+    </div>
+    <form [formGroup]="moduleForm" (ngSubmit)="saveModule()">
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Name (English) <span class="required">*</span></label>
+          <input type="text" class="form-control" formControlName="nameEnglish" 
+                 placeholder="e.g., History, Geography">
+          <div class="error" *ngIf="moduleForm.get('nameEnglish')?.invalid && moduleForm.get('nameEnglish')?.touched">
+            English name is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Name (Hindi) <span class="required">*</span></label>
+          <input type="text" class="form-control" formControlName="nameHindi" 
+                 placeholder="उदाहरण: इतिहास, भूगोल">
+          <div class="error" *ngIf="moduleForm.get('nameHindi')?.invalid && moduleForm.get('nameHindi')?.touched">
+            Hindi name is required
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Icon</label>
+            <select class="form-control" formControlName="icon">
+              <option value="bi-book">Book</option>
+              <option value="bi-clock-history">History</option>
+              <option value="bi-globe">Geography</option>
+              <option value="bi-bank">Polity</option>
+              <option value="bi-graph-up">Economy</option>
+              <option value="bi-people">Social</option>
+              <option value="bi-map">Map</option>
+            </select>
+          </div>
+          <div class="form-group half">
+            <label>Display Order</label>
+            <input type="number" class="form-control" formControlName="order" min="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Module Image <span class="required">*</span></label>
+          <div class="image-preview" *ngIf="imagePreview">
+            <img [src]="imagePreview" alt="Preview">
+            <button type="button" class="remove-image" (click)="removeImage()">&times;</button>
+          </div>
+          <div class="upload-area" *ngIf="!imagePreview" (click)="fileInput.click()">
+            <input type="file" #fileInput accept="image/*" (change)="onFileSelected($event)" hidden>
+            <div class="upload-icon">📁</div>
+            <p>Click to upload image</p>
+            <small>Max size: 5MB (JPG, PNG, GIF)</small>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeModal()">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="moduleForm.invalid || (!isEditing && !imageBase64)">
+          {{ isEditing ? 'Update Module' : 'Create Module' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Create Folder Modal -->
+<div class="modal-overlay" *ngIf="showCreateFolderModal" (click)="showCreateFolderModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Create New Folder</h3>
+      <button class="close-btn" (click)="showCreateFolderModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Folder Name (English) *</label>
+        <input type="text" [(ngModel)]="newFolderName" placeholder="e.g., PYQ, Notes, Tests" 
+               class="form-control" (keyup.enter)="createFolder()" autofocus>
+      </div>
+      <div class="form-group">
+        <label>Folder Name (Hindi) <small>(Optional)</small></label>
+        <input type="text" [(ngModel)]="newFolderNameHi" placeholder="e.g., पिछले प्रश्न, नोट्स, टेस्ट" class="form-control">
+      </div>
+      <div class="current-location">
+        <i class="fa fa-map-marker"></i>
+        <span>Location: {{ currentItem?.name?.english || 'Unknown' }}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showCreateFolderModal = false">Cancel</button>
+      <button class="btn-primary" (click)="createFolder()" [disabled]="!newFolderName.trim()">
+        <i class="fa fa-check"></i> Create Folder
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Create File Modal -->
+<div class="modal-overlay" *ngIf="showCreateFileModal" (click)="showCreateFileModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Add File Link</h3>
+      <button class="close-btn" (click)="showCreateFileModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>File Name (English) *</label>
+        <input type="text" [(ngModel)]="newFileName" placeholder="e.g., Chapter 1 Notes" 
+               class="form-control" autofocus>
+      </div>
+      <div class="form-group">
+        <label>File Name (Hindi) <small>(Optional)</small></label>
+        <input type="text" [(ngModel)]="newFileNameHi" placeholder="e.g., अध्याय 1 नोट्स" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>File Link (URL) *</label>
+        <input type="text" [(ngModel)]="newFileLink" placeholder="https://example.com/file.pdf" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>File Description <small>(Optional)</small></label>
+        <textarea [(ngModel)]="newFileDescription" placeholder="Describe the file content..." class="form-control" rows="3"></textarea>
+      </div>
+      <div class="current-location">
+        <i class="fa fa-map-marker"></i>
+        <span>Location: {{ currentItem?.name?.english || 'Unknown' }}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showCreateFileModal = false">Cancel</button>
+      <button class="btn-primary" (click)="createFile()" [disabled]="!newFileName.trim() || !newFileLink.trim()">
+        <i class="fa fa-check"></i> Add File
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit File Modal -->
+<div class="modal-overlay" *ngIf="showEditFileModal" (click)="showEditFileModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Edit File</h3>
+      <button class="close-btn" (click)="showEditFileModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>File Name (English) *</label>
+        <input type="text" [(ngModel)]="editFileName" class="form-control" autofocus>
+      </div>
+      <div class="form-group">
+        <label>File Name (Hindi) <small>(Optional)</small></label>
+        <input type="text" [(ngModel)]="editFileNameHi" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>File Link (URL) *</label>
+        <input type="text" [(ngModel)]="editFileLink" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>File Description <small>(Optional)</small></label>
+        <textarea [(ngModel)]="editFileDescription" class="form-control" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showEditFileModal = false">Cancel</button>
+      <button class="btn-primary" (click)="updateFile()" [disabled]="!editFileName.trim() || !editFileLink.trim()">
+        <i class="fa fa-check"></i> Update File
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename Modal -->
+<div class="modal-overlay" *ngIf="showRenameModal" (click)="showRenameModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Rename {{ getItemTypeLabel(selectedItem?.type || '') }}</h3>
+      <button class="close-btn" (click)="showRenameModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>New Name (English) *</label>
+        <input type="text" [(ngModel)]="renameNewName" class="form-control" autofocus>
+      </div>
+      <div class="form-group" *ngIf="selectedItem?.type === 'folder'">
+        <label>New Name (Hindi) <small>(Optional)</small></label>
+        <input type="text" [(ngModel)]="renameNewNameHi" class="form-control">
+      </div>
+      <div class="current-location">
+        <i class="fa fa-map-marker"></i>
+        <span>Current: {{ selectedItem?.name?.english || 'Unknown' }}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showRenameModal = false">Cancel</button>
+      <button class="btn-primary" (click)="renameItem()" [disabled]="!renameNewName.trim()">
+        <i class="fa fa-check"></i> Rename
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="showDeleteModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header warning">
+      <h3>Confirm Delete</h3>
+      <button class="close-btn" (click)="showDeleteModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="delete-warning">
+        <p><strong>Are you sure you want to delete this item?</strong></p>
+        <p class="delete-item-name">
+          <i class="fa" [class]="selectedItem?.type === 'folder' ? 'fa-folder' : 'fa-file'"></i>
+          {{ selectedItem?.name?.english }}
+        </p>
+        <div class="warning-message" *ngIf="selectedItem?.type === 'folder'">
+          <i class="fa fa-warning"></i>
+          <span>This will delete all files inside this folder. This action cannot be undone.</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showDeleteModal = false">Cancel</button>
+      <button class="btn-danger" (click)="deleteItem()">
+        <i class="fa fa-trash"></i> Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Reorder Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showReorderConfirmModal" (click)="showReorderConfirmModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header success">
+      <h3>Reorder Complete</h3>
+      <button class="close-btn" (click)="showReorderConfirmModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="reorder-summary">
+        <p><strong>Modules have been successfully reordered!</strong></p>
+        <div class="reorder-preview">
+          <div *ngFor="let module of modules.slice(0, 5)" class="preview-item">
+            <span class="preview-order">{{ modules.indexOf(module) + 1 }}.</span>
+            <span class="preview-name">{{ module.name.english }}</span>
+          </div>
+          <div *ngIf="modules.length > 5" class="preview-more">
+            ... and {{ modules.length - 5 }} more
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="showReorderConfirmModal = false">
+        <i class="fa fa-check"></i> Got it
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TEST MANAGEMENT MODALS ============ -->
+
+<!-- Test Management Modal -->
+<div class="modal-overlay" *ngIf="showTestManagementModal" (click)="showTestManagementModal = false">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <i class="fa fa-puzzle-piece"></i>
+        Test Management - {{ currentModuleForTests?.name?.english }}
+      </h3>
+      <button class="close-btn" (click)="showTestManagementModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Create Test Button -->
+      <div class="management-header">
+        <button class="btn-primary" (click)="openCreateTestModalForModule()">
+          <i class="fa fa-plus"></i> Create New Test
+        </button>
+        <span class="test-count">{{ moduleTests.length }} test(s) found</span>
+      </div>
+
+      <!-- Tests List -->
+      <div *ngIf="moduleTests.length === 0" class="no-tests">
+        <i class="fa fa-puzzle-piece no-tests-icon"></i>
+        <p>No tests created for this module yet.</p>
+        <button class="btn-primary" (click)="openCreateTestModalForModule()">
+          <i class="fa fa-plus"></i> Create Your First Test
+        </button>
+      </div>
+
+      <div *ngFor="let test of moduleTests" class="test-item-card">
+        <div class="test-item-header">
+          <div class="test-item-title">
+            <h4>{{ test.title }}</h4>
+            <span class="status-badge" [class.active]="test.isActive" [class.inactive]="!test.isActive">
+              {{ test.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+          <div class="test-item-actions">
+            <button class="action-btn-small edit" (click)="editTest(test)" title="Edit Test">
+              <i class="fa fa-edit"></i>
+            </button>
+            <button class="action-btn-small submissions" (click)="viewTestSubmissionsForModule(test)" title="View Submissions">
+              <i class="fa fa-users"></i>
+            </button>
+            <button class="action-btn-small leaderboard" (click)="viewTestLeaderboardForModule(test)" title="View Leaderboard">
+              <i class="fa fa-trophy"></i>
+            </button>
+            <button class="action-btn-small status" (click)="toggleTestStatus(test)" 
+                    [title]="test.isActive ? 'Deactivate' : 'Activate'">
+              <i class="fa" [class.fa-eye]="test.isActive" [class.fa-eye-slash]="!test.isActive"></i>
+            </button>
+            <button class="action-btn-small delete" (click)="deleteTest(test._id)" title="Delete Test">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="test-item-body">
+          <p>{{ test.description || 'No description' }}</p>
+          <div class="test-meta">
+            <span><i class="fa fa-question-circle"></i> Questions: {{ test.questionUids.length || 0 }}</span>
+            <span><i class="fa fa-calendar"></i> Created: {{ test.createdAt | date:'mediumDate' }}</span>
+            <span><i class="fa fa-flag-checkered"></i> Passing: {{ test.passingScore || 70 }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showTestManagementModal = false">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Test Submissions Modal -->
+<div class="modal-overlay" *ngIf="showTestSubmissionsModal" (click)="showTestSubmissionsModal = false">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <i class="fa fa-users"></i>
+        Test Submissions - {{ currentTest?.title }}
+      </h3>
+      <button class="close-btn" (click)="showTestSubmissionsModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="submissions-stats" *ngIf="testSubmissions.length > 0">
+        <span class="stat">
+          <i class="fa fa-users"></i>
+          Total: {{ testSubmissions.length }}
+        </span>
+        <span class="stat passed">
+          <i class="fa fa-check-circle"></i>
+          Passed: {{ getPassedCount() }}
+        </span>
+        <span class="stat failed">
+          <i class="fa fa-times-circle"></i>
+          Failed: {{ getFailedCount() }}
+        </span>
+        <span class="stat average">
+          <i class="fa fa-chart-line"></i>
+          Avg Score: {{ getAverageScore() }}%
+        </span>
+      </div>
+      
+      <div class="submissions-table-container">
+        <table class="submissions-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Score</th>
+              <th>Time</th>
+              <th>Result</th>
+              <th>Submitted</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let sub of testSubmissions; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td><strong>{{ sub.name }}</strong></td>
+              <td>{{ sub.email }}</td>
+              <td>{{ sub.phone }}</td>
+              <td>
+                {{ sub.score }}/{{ sub.totalQuestions }}
+                <span class="score-percent">({{ getScorePercentage(sub.score, sub.totalQuestions) }}%)</span>
+              </td>
+              <td>{{ formatTime(sub.timeTaken) }}</td>
+              <td>
+                <span class="passed-badge" *ngIf="sub.passed">
+                  <i class="fa fa-check"></i> Passed
+                </span>
+                <span class="failed-badge" *ngIf="!sub.passed">
+                  <i class="fa fa-times"></i> Failed
+                </span>
+              </td>
+              <td>{{ sub.submittedAt | date:'medium' }}</td>
+            </tr>
+            <tr *ngIf="testSubmissions.length === 0">
+              <td colspan="8" style="text-align: center; padding: 40px;">
+                <i class="fa fa-inbox" style="font-size: 40px; color: #ccc; display: block; margin-bottom: 10px;"></i>
+                No submissions yet
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="exportSubmissionsCSV()" *ngIf="testSubmissions.length > 0">
+        <i class="fa fa-download"></i> Export CSV
+      </button>
+      <button class="btn-primary" (click)="showTestSubmissionsModal = false">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Test Leaderboard Modal -->
+<div class="modal-overlay" *ngIf="showTestLeaderboardModal" (click)="showTestLeaderboardModal = false">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header success">
+      <h3>
+        <i class="fa fa-trophy"></i>
+        Leaderboard - {{ currentTest?.title }}
+      </h3>
+      <button class="close-btn" (click)="showTestLeaderboardModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="leaderboard-header-info">
+        <span class="info-item">
+          <i class="fa fa-users"></i>
+          Total Participants: <strong>{{ testLeaderboard.length || 0 }}</strong>
+        </span>
+        <span class="info-item">
+          <i class="fa fa-flag-checkered"></i>
+          Passing Score: <strong>{{ currentTest?.passingScore || 70 }}%</strong>
+        </span>
+        <span class="info-item" *ngIf="testLeaderboard.length > 0">
+          <i class="fa fa-star"></i>
+          Top Score: <strong>{{ testLeaderboard[0]?.score }}/{{ testLeaderboard[0]?.totalQuestions }}</strong>
+        </span>
+      </div>
+      
+      <div class="leaderboard-container">
+        <div *ngFor="let item of testLeaderboard; let i = index" class="leaderboard-item-leader" 
+             [class.top-1]="item.rank === 1" 
+             [class.top-2]="item.rank === 2" 
+             [class.top-3]="item.rank === 3">
+          
+          <div class="leaderboard-rank" [class.top-1]="item.rank === 1" [class.top-2]="item.rank === 2" [class.top-3]="item.rank === 3">
+            <span class="rank-number">#{{ item.rank }}</span>
+            <i class="fa fa-trophy gold" *ngIf="item.rank === 1"></i>
+            <i class="fa fa-medal silver" *ngIf="item.rank === 2"></i>
+            <i class="fa fa-medal bronze" *ngIf="item.rank === 3"></i>
+          </div>
+          
+          <div class="leaderboard-user">
+            <div class="leaderboard-name">{{ item.name }}</div>
+            <div class="leaderboard-email">{{ item.email }}</div>
+            <div class="leaderboard-phone" *ngIf="item.phone">{{ item.phone }}</div>
+          </div>
+          
+          <div class="leaderboard-score">
+            <div class="leaderboard-score-value">{{ item.score }}/{{ item.totalQuestions }}</div>
+            <div class="leaderboard-time">
+              <i class="fa fa-clock"></i> {{ formatTime(item.timeTaken) }}
+            </div>
+            <div class="leaderboard-percent" [class.passed]="getScorePercentage(item.score, item.totalQuestions) >= (currentTest?.passingScore || 70)">
+              {{ getScorePercentage(item.score, item.totalQuestions) }}%
+              <span class="passed-check" *ngIf="getScorePercentage(item.score, item.totalQuestions) >= (currentTest?.passingScore || 70)">
+                <i class="fa fa-check-circle"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div *ngIf="testLeaderboard.length === 0" class="no-data">
+          <i class="fa fa-trophy" style="font-size: 40px; color: #ccc; display: block; margin-bottom: 10px;"></i>
+          <p>No submissions yet.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="showTestLeaderboardModal = false">Close</button>
+    </div>
+  </div>
+</div>

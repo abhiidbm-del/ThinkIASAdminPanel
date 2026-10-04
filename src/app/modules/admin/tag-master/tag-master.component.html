@@ -1,0 +1,172 @@
+<div class="tag-management">
+  <!-- Message Display -->
+  <div *ngIf="message" class="message" [class]="messageType">
+    {{ message }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading tags...</p>
+  </div>
+
+  <div class="tags-container">
+    <!-- Tags Listing Section -->
+    <div class="listing-section">
+      <div class="section-header">
+        <div>
+          <h3>All Tags</h3>
+          <span class="tag-count">{{ tags.length }} tag(s)</span>
+        </div>
+        <div>
+          <button class="btn btn-primary" (click)="openCreateDialog()">
+            <mat-icon>add</mat-icon>
+            Create New Tag
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="tags.length === 0 && !isLoading" class="empty-state">
+        <mat-icon>sell</mat-icon>
+        <p>No tags found. Create your first tag!</p>
+        <button mat-raised-button color="primary" (click)="openCreateDialog()">
+          <mat-icon>add</mat-icon>
+          Create First Tag
+        </button>
+      </div>
+
+      <div class="tags-table" *ngIf="tags.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Sub-Category</th>
+              <th>Topic</th>
+              <th>Tag</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tag of tags">
+              <td class="category-name">
+                <span class="category-badge">{{ tag.category | titlecase }}</span>
+              </td>
+              <td class="sub-category-name">
+                <span class="sub-category-badge">{{ tag.subCategory | titlecase }}</span>
+              </td>
+              <td class="topic-name">
+                <span class="topic-badge">{{ tag.topic | titlecase }}</span>
+              </td>
+              <td class="full-path">
+                <code>{{ tag.tag }}</code>
+              </td>
+              <td class="actions">
+                <button 
+                  class="btn-edit" 
+                  (click)="editTag(tag)"
+                  title="Edit tag">
+                  <mat-icon>edit</mat-icon> Edit
+                </button>
+                <button 
+                  class="btn-delete" 
+                  (click)="deleteTag(tag)"
+                  title="Delete tag">
+                  <mat-icon>delete</mat-icon> Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Tag Dialog Template -->
+<ng-template #tagDialogTemplate>
+  <div class="tag-dialog">
+    <div class="dialog-header">
+      <h2 mat-dialog-title>{{ editingTag ? 'Edit Tag' : 'Create New Tag' }}</h2>
+      <button mat-icon-button (click)="closeDialog()" class="close-button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-dialog-content class="dialog-content">
+      <form [formGroup]="tagForm" (ngSubmit)="onSubmit()" class="tag-form">
+        <div class="form-group">
+          <label for="category">Category *</label>
+          <input 
+            type="text" 
+            id="category"
+            formControlName="category" 
+            placeholder="Enter category (e.g., History, Science)"
+            class="form-control"
+            [class.error]="isFieldInvalid('category')"
+            list="categorySuggestions">
+          <datalist id="categorySuggestions">
+            <option *ngFor="let cat of categorySuggestions" [value]="cat">{{ cat | titlecase }}</option>
+          </datalist>
+          <div *ngIf="isFieldInvalid('category')" class="error-message">
+            <span *ngIf="tagForm.get('category')?.errors?.['required']">Category is required</span>
+            <span *ngIf="tagForm.get('category')?.errors?.['minlength']">Category must be at least 2 characters long</span>
+            <span *ngIf="tagForm.get('category')?.errors?.['maxlength']">Category cannot exceed 50 characters</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="subCategory">Sub-Category *</label>
+          <input 
+            type="text" 
+            id="subCategory"
+            formControlName="subCategory" 
+            placeholder="Enter sub-category (e.g., Ancient History, Physics)"
+            class="form-control"
+            [class.error]="isFieldInvalid('subCategory')">
+          <div *ngIf="isFieldInvalid('subCategory')" class="error-message">
+            <span *ngIf="tagForm.get('subCategory')?.errors?.['required']">Sub-category is required</span>
+            <span *ngIf="tagForm.get('subCategory')?.errors?.['minlength']">Sub-category must be at least 2 characters long</span>
+            <span *ngIf="tagForm.get('subCategory')?.errors?.['maxlength']">Sub-category cannot exceed 50 characters</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="topic">Topic *</label>
+          <input 
+            type="text" 
+            id="topic"
+            formControlName="topic" 
+            placeholder="Enter topic (e.g., Gupta Empire, Newton's Laws)"
+            class="form-control"
+            [class.error]="isFieldInvalid('topic')">
+          <div *ngIf="isFieldInvalid('topic')" class="error-message">
+            <span *ngIf="tagForm.get('topic')?.errors?.['required']">Topic is required</span>
+            <span *ngIf="tagForm.get('topic')?.errors?.['minlength']">Topic must be at least 2 characters long</span>
+            <span *ngIf="tagForm.get('topic')?.errors?.['maxlength']">Topic cannot exceed 50 characters</span>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="form-group" *ngIf="tagForm.valid">
+          <label>Full Path Preview:</label>
+          <div class="path-preview">
+            {{ tagForm.get('category')?.value | titlecase }} / 
+            {{ tagForm.get('subCategory')?.value | titlecase }} / 
+            {{ tagForm.get('topic')?.value | titlecase }}
+          </div>
+        </div>
+      </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="dialog-actions">
+      <button mat-button (click)="closeDialog()" [disabled]="isSubmitting">
+        Cancel
+      </button>
+      <button mat-raised-button color="primary" (click)="onSubmit()" 
+              [disabled]="isSubmitting || tagForm.invalid">
+        <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+        <span *ngIf="!isSubmitting">{{ editingTag ? 'Update' : 'Create' }} Tag</span>
+      </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>

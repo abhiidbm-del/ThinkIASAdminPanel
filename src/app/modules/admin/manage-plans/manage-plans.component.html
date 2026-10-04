@@ -1,0 +1,51 @@
+<div class="page">
+  <div class="page-header"><div class="catalog-label"><span class="catalog-dot"></span> Pricing catalogue <span class="catalog-note">{{ plans.length }} plans configured</span></div><button class="add-plan-button" (click)="add()"><span>+</span>{{ 'Add Plan' | t }}</button></div>
+  <p class="message" *ngIf="message">{{ message | t }}</p><p class="error" *ngIf="error">{{ error | t }}</p>
+  <div class="state" *ngIf="loading">{{ 'Loading plans...' | t }}</div>
+  <div class="grid" *ngIf="!loading">
+    <article class="plan" *ngFor="let plan of plans">
+      <div class="plan-topline"><span class="plan-kind">{{ plan.accessType || 'plan' }}</span><span class="status" [class.off]="!plan.isActive">{{ (plan.isActive ? 'Active' : 'Hidden') | t }}</span></div>
+      <h3>{{ plan.name }}</h3><p class="plan-subtitle">{{ plan.subtitle }}</p>
+      <div class="plan-amounts">
+        <span class="base-amount" *ngIf="plan.baseAmount">₹{{ plan.baseAmount | number }}</span>
+        <strong class="selling-amount">₹{{ plan.totalAmount | number }}</strong>
+      </div>
+      <div class="duration" *ngIf="plan.duration">◷ {{ plan.duration }}</div>
+      <div class="feature-heading">What's included</div><ul><li *ngFor="let feature of plan.features">{{ feature }}</li></ul>
+      <button class="edit-plan-button" (click)="edit(plan)">{{ 'Edit plan' | t }} <span>→</span></button>
+      <button type="button" class="delete-plan-button" (click)="deletePlan(plan)" [disabled]="deletingPlanId === plan.id">{{ (deletingPlanId === plan.id ? 'Deleting...' : 'Delete plan') | t }}</button>
+    </article>
+  </div>
+  <ng-template #editorTemplate>
+    <form class="editor" *ngIf="editing as plan" #planForm="ngForm" (ngSubmit)="planForm.valid && save()">
+      <div class="editor-title"><h3>{{ (creating ? 'Add Plan' : 'Edit plan') | t }}</h3><button type="button" (click)="cancel()">×</button></div>
+      <p class="error" *ngIf="error">{{error}}</p>
+      <fieldset><legend>Courses included in this new plan</legend><label class="check"><input type="checkbox" name="includesPrelims" [(ngModel)]="includesPrelims">Prelims</label><label class="check"><input type="checkbox" name="includesMains" [(ngModel)]="includesMains">Mains</label></fieldset>
+      <div class="bilingual-fields">
+        <div class="bilingual-row">
+          <label>{{ 'Name' | t }}<input name="name" [(ngModel)]="plan.name" required></label>
+          <label>{{ 'Name (Hindi)' | t }}<input name="nameHindi" [(ngModel)]="plan.nameHindi"></label>
+        </div>
+        <div class="bilingual-row">
+          <label>{{ 'Subtitle' | t }}<input name="subtitle" [(ngModel)]="plan.subtitle"></label>
+          <label>{{ 'Subtitle (Hindi)' | t }}<input name="subtitleHindi" [(ngModel)]="plan.subtitleHindi"></label>
+        </div>
+        <div class="bilingual-row">
+          <label>{{ 'Badge' | t }}<input name="badge" [(ngModel)]="plan.badge"></label>
+          <label>{{ 'Badge (Hindi)' | t }}<input name="badgeHindi" [(ngModel)]="plan.badgeHindi"></label>
+        </div>
+        <div class="bilingual-row">
+          <label>{{ 'Duration' | t }}<input name="duration" [(ngModel)]="plan.duration"></label>
+          <label>{{ 'Duration (Hindi)' | t }}<input name="durationHindi" [(ngModel)]="plan.durationHindi"></label>
+        </div>
+        <div class="bilingual-row">
+          <label>{{ 'Features' | t }} <small>{{ '(one per line)' | t }}</small><textarea name="features" rows="9" [(ngModel)]="featuresText"></textarea></label>
+          <label>{{ 'Features (Hindi, matching English line order)' | t }}<textarea name="featuresHindi" rows="9" [(ngModel)]="featuresHindiText"></textarea></label>
+        </div>
+      </div>
+      <div class="row"><label>{{ 'Base amount' | t }}<input name="baseAmount" type="number" min="0" [(ngModel)]="plan.baseAmount"></label><label>{{ 'Selling amount' | t }}<input name="totalAmount" type="number" min="0" [(ngModel)]="plan.totalAmount" required></label></div>
+      <div class="row"><label>{{ 'Display order' | t }}<input name="displayOrder" type="number" min="0" [(ngModel)]="plan.displayOrder"></label><label class="check"><input name="active" type="checkbox" [(ngModel)]="plan.isActive"> {{ 'Active on dashboard' | t }}</label></div>
+      <div class="actions"><button type="button" class="secondary" (click)="cancel()">{{ 'Cancel' | t }}</button><button type="submit" [disabled]="saving || planForm.invalid">{{ (saving ? 'Saving...' : 'Save plan') | t }}</button></div>
+    </form>
+  </ng-template>
+</div>

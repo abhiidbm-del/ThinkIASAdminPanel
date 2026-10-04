@@ -1,0 +1,33 @@
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 450px;
+  padding: 20px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 20px;
+}
+
+button {
+  height: 48px;
+  margin-top: 10px;
+  
+  mat-spinner {
+    margin: 0 auto;
+  }
+}

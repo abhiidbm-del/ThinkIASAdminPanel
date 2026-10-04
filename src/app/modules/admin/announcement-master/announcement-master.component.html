@@ -1,0 +1,234 @@
+<div class="container mt-4">
+  <div class="header-section">
+    <h2>{{ currentLanguage === 'en' ? 'Announcement Management' : 'घोषणा प्रबंधन' }}</h2>
+    
+    <div class="header-actions">
+      <!-- Language Toggle -->
+      <div class="language-toggle">
+        <button 
+          class="lang-btn" 
+          [class.active]="currentLanguage === 'en'"
+          (click)="switchLanguage('en')">
+          EN
+        </button>
+        <button 
+          class="lang-btn" 
+          [class.active]="currentLanguage === 'hi'"
+          (click)="switchLanguage('hi')">
+          HI
+        </button>
+      </div>
+      
+      <!-- Create Button -->
+      <button class="btn btn-create" (click)="openCreateForm()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1V15M1 8H15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        {{ currentLanguage === 'en' ? 'Create New' : 'नया बनाएं' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Create/Edit Form -->
+  <div *ngIf="showForm" class="form-card">
+    <div class="form-header">
+      <h4>{{ isEditing ? 
+        (currentLanguage === 'en' ? 'Edit Announcement' : 'घोषणा संपादित करें') : 
+        (currentLanguage === 'en' ? 'Create New Announcement' : 'नई घोषणा बनाएं') 
+      }}</h4>
+      <button class="btn-close" (click)="closeForm()">×</button>
+    </div>
+    <div class="form-body">
+      <!-- English Section -->
+      <div class="language-section">
+        <div class="language-label">
+          <span class="flag">🇬🇧</span>
+          {{ currentLanguage === 'en' ? 'English' : 'अंग्रेजी' }}
+        </div>
+        <div class="form-group">
+          <label class="form-label required">
+            {{ currentLanguage === 'en' ? 'Title' : 'शीर्षक' }}
+          </label>
+          <input 
+            type="text" 
+            class="form-control" 
+            [(ngModel)]="formTitle"
+            [placeholder]="currentLanguage === 'en' ? 'Enter announcement title' : 'घोषणा का शीर्षक दर्ज करें'"
+            maxlength="200"
+          >
+          <div class="char-count">{{ formTitle.length }}/200</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            {{ currentLanguage === 'en' ? 'Description' : 'विवरण' }}
+          </label>
+          <textarea 
+            class="form-control" 
+            rows="3"
+            [(ngModel)]="formDescription"
+            [placeholder]="currentLanguage === 'en' ? 'Enter announcement description' : 'घोषणा का विवरण दर्ज करें'"
+            maxlength="500"
+          ></textarea>
+          <div class="char-count">{{ formDescription.length }}/500</div>
+        </div>
+      </div>
+
+      <!-- Hindi Section -->
+      <div class="language-section">
+        <div class="language-label">
+          <span class="flag">🇮🇳</span>
+          {{ currentLanguage === 'en' ? 'Hindi (Optional)' : 'हिंदी (वैकल्पिक)' }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            {{ currentLanguage === 'en' ? 'Title (Hindi)' : 'शीर्षक (हिंदी)' }}
+          </label>
+          <input 
+            type="text" 
+            class="form-control hindi-input" 
+            [(ngModel)]="formTitleHindi"
+            [placeholder]="currentLanguage === 'en' ? 'Enter announcement title in Hindi' : 'घोषणा का शीर्षक हिंदी में दर्ज करें'"
+            maxlength="200"
+          >
+          <div class="char-count">{{ formTitleHindi.length }}/200</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            {{ currentLanguage === 'en' ? 'Description (Hindi)' : 'विवरण (हिंदी)' }}
+          </label>
+          <textarea 
+            class="form-control hindi-input" 
+            rows="3"
+            [(ngModel)]="formDescriptionHindi"
+            [placeholder]="currentLanguage === 'en' ? 'Enter announcement description in Hindi' : 'घोषणा का विवरण हिंदी में दर्ज करें'"
+            maxlength="500"
+          ></textarea>
+          <div class="char-count">{{ formDescriptionHindi.length }}/500</div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="closeForm()">
+          {{ currentLanguage === 'en' ? 'Cancel' : 'रद्द करें' }}
+        </button>
+        <button class="btn btn-primary" (click)="saveAnnouncement()">
+          {{ isEditing ? 
+            (currentLanguage === 'en' ? 'Update' : 'अपडेट करें') : 
+            (currentLanguage === 'en' ? 'Save' : 'सहेजें') 
+          }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>{{ currentLanguage === 'en' ? 'Loading announcements...' : 'घोषणाएँ लोड हो रही हैं...' }}</p>
+  </div>
+
+  <!-- Announcements Table -->
+  <div *ngIf="!loading" class="table-container">
+    <div class="table-header">
+      <div class="table-stats">
+        <span class="total-count">
+          {{ announcements.length }} 
+          {{ currentLanguage === 'en' ? 'announcement(s)' : 'घोषणा(एँ)' }}
+        </span>
+      </div>
+    </div>
+    
+    <div class="table-wrapper">
+      <table class="announcement-table">
+        <thead>
+          <tr>
+            <th class="col-title">{{ currentLanguage === 'en' ? 'Title' : 'शीर्षक' }}</th>
+            <th class="col-description">{{ currentLanguage === 'en' ? 'Description' : 'विवरण' }}</th>
+            <th class="col-date">{{ currentLanguage === 'en' ? 'Published Date' : 'प्रकाशित तिथि' }}</th>
+            <th class="col-actions">{{ currentLanguage === 'en' ? 'Actions' : 'क्रियाएं' }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="announcements.length === 0">
+            <td colspan="5" class="empty-state">
+              <div class="empty-content">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 16V12M12 8H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <p>{{ currentLanguage === 'en' ? 'No announcements found' : 'कोई घोषणा नहीं मिली' }}</p>
+                <p class="empty-subtext">
+                  {{ currentLanguage === 'en' ? 
+                    'Create your first announcement to get started' : 
+                    'आरंभ करने के लिए अपनी पहली घोषणा बनाएं' 
+                  }}
+                </p>
+              </div>
+            </td>
+          </tr>
+          
+          <tr *ngFor="let item of announcements" class="table-row">
+            
+            
+            <td class="col-title">
+              <div class="title-content">
+                <strong>{{ getDisplayText(item.title, item.titleHindi) }}</strong>
+                <div class="language-indicator">
+                  <span *ngIf="item.titleHindi || item.shortDescriptionHindi" class="hindi-badge">
+                    HI Available
+                  </span>
+                </div>
+              </div>
+            </td>
+            
+            <td class="col-description">
+              <div class="description-content">
+                {{ getDisplayText(item.shortDescription, item.shortDescriptionHindi) }}
+                <span *ngIf="getDisplayText(item.shortDescription, item.shortDescriptionHindi).length > 100">...</span>
+              </div>
+            </td>
+            
+            <td class="col-date">
+              <div class="date-info">
+                <span class="date-text">{{ formatDate(item.publishDate) }}</span>
+                <small class="time-text">{{ formatTime(item.publishDate) }}</small>
+              </div>
+            </td>
+            
+            <td class="col-actions">
+              <div class="action-buttons">
+                <label class="toggle-switch">
+                <input 
+                  type="checkbox" 
+                  [checked]="item.isActive"
+                  (change)="toggleActive(item._id)"
+                  class="toggle-input"
+                >
+                <span class="toggle-slider">
+                  <span class="toggle-text">
+                    {{ item.isActive ? 
+                      (currentLanguage === 'en' ? 'Active' : 'सक्रिय') : 
+                      (currentLanguage === 'en' ? 'Inactive' : 'निष्क्रिय') 
+                    }}
+                  </span>
+                </span>
+              </label>
+                <button class="btn-action btn-edit" (click)="openEditForm(item)" 
+                        [title]="currentLanguage === 'en' ? 'Edit' : 'संपादित करें'">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M11.3333 2.66675C11.5089 2.49168 11.7164 2.35264 11.9441 2.25734C12.1718 2.16205 12.4156 2.1123 12.6619 2.11084C12.9081 2.10939 13.1526 2.15627 13.3814 2.24882C13.6103 2.34138 13.8193 2.47786 13.9966 2.65036C14.1738 2.82286 14.316 3.02811 14.415 3.25475C14.5139 3.4814 14.5676 3.72504 14.5732 3.97192C14.5789 4.21879 14.5364 4.46439 14.448 4.69526C14.3596 4.92613 14.227 5.13787 14.0576 5.31841L6.444 12.932L2.66667 14.0001L3.73467 10.2227L11.3333 2.66675Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <button class="btn-action btn-delete" (click)="deleteAnnouncement(item._id)" 
+                        [title]="currentLanguage === 'en' ? 'Delete' : 'हटाएं'">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M2 4H14M5.33333 4V2.66667C5.33333 2.48986 5.40357 2.32029 5.5286 2.19526C5.65362 2.07024 5.82319 2 6 2H10C10.1768 2 10.3464 2.07024 10.4714 2.19526C10.5964 2.32029 10.6667 2.48986 10.6667 2.66667V4M6.66667 7.33333V11.3333M9.33333 7.33333V11.3333M12 4V13.3333C12 13.5101 11.9298 13.6797 11.8047 13.8047C11.6797 13.9298 11.5101 14 11.3333 14H4.66667C4.48986 14 4.32029 13.9298 4.19526 13.8047C4.07024 13.6797 4 13.5101 4 13.3333V4H12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

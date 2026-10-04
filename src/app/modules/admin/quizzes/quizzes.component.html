@@ -1,0 +1,118 @@
+<div class="quizzes-container">
+  <div class="header">
+    <h1>Quiz Management</h1>
+    <button mat-raised-button color="primary" (click)="openCreateQuizDialog()">
+      <mat-icon>add</mat-icon>
+      Create Quiz
+    </button>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Search Quizzes</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (ngModelChange)="filterQuizzes()">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Filter by Status</mat-label>
+      <mat-select [(value)]="statusFilter" (selectionChange)="filterQuizzes()">
+        <mat-option value="all">All Quizzes</mat-option>
+        <mat-option value="active">Active Only</mat-option>
+        <mat-option value="inactive">Inactive Only</mat-option>
+      </mat-select>
+      <mat-icon matSuffix>filter_list</mat-icon>
+    </mat-form-field>
+
+    <button mat-stroked-button (click)="loadQuizzes()" [disabled]="loading()">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  </div>
+
+  <div *ngIf="loading()" class="loading">
+    <mat-spinner></mat-spinner>
+    <p>Loading quizzes...</p>
+  </div>
+
+  <div *ngIf="!loading() && filteredQuizzes().length === 0" class="no-quizzes">
+    <mat-card>
+      <mat-card-content>
+        <mat-icon class="no-quizzes-icon">quiz</mat-icon>
+        <h3>No quizzes found</h3>
+        <p *ngIf="searchTerm || statusFilter !== 'all'">
+          No quizzes match your current filters. Try adjusting your search criteria.
+        </p>
+        <p *ngIf="!searchTerm && statusFilter === 'all'">
+          You haven't created any quizzes yet.
+        </p>
+        <button mat-raised-button color="primary" (click)="openCreateQuizDialog()">
+          <mat-icon>add</mat-icon>
+          Create Your First Quiz
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="quizzes-grid" *ngIf="!loading() && filteredQuizzes().length > 0">
+    <mat-card *ngFor="let quiz of filteredQuizzes()" class="quiz-card">
+      <mat-card-header>
+        <mat-card-title>{{ quiz.title }}</mat-card-title>
+        <mat-card-subtitle>
+          <div class="status-badge" [class.active]="quiz.isActive" [class.inactive]="!quiz.isActive">
+            <mat-icon>{{ quiz.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+            {{ quiz.isActive ? 'Active' : 'Inactive' }}
+          </div>
+          <div>Created: {{ quiz.createdAt | date:'medium' }}</div>
+        </mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <p><strong>Description:</strong> {{ quiz.description || 'No description' }}</p>
+        <div class="quiz-details">
+          <div class="detail-item">
+            <mat-icon>quiz</mat-icon>
+            <span><strong>Questions:</strong> {{ quiz.questionUids?.length || 0 }}</span>
+          </div>
+          <div class="detail-item">
+            <mat-icon>today</mat-icon>
+            <span><strong>Created:</strong> {{ quiz.createdAt | date:'shortDate' }}</span>
+          </div>
+          <!-- <div class="detail-item">
+            <mat-icon>person</mat-icon>
+            <span><strong>Created By:</strong> {{ quiz.createdBy?.fullName || 'Admin' }}</span>
+          </div> -->
+          <div class="detail-item">
+            <mat-icon>analytics</mat-icon>
+            <span><strong>Status:</strong> {{ quiz.isActive ? 'Active' : 'Inactive' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions align="end">
+        <div class="quiz-actions">
+          <button mat-button color="primary" (click)="editQuiz(quiz)">
+            <mat-icon>edit</mat-icon>
+            Edit
+          </button>
+          
+          <button mat-button [color]="quiz.isActive ? 'warn' : 'accent'" 
+                  (click)="toggleQuizStatus(quiz)">
+            <mat-icon>{{ quiz.isActive ? 'toggle_off' : 'toggle_on' }}</mat-icon>
+            {{ quiz.isActive ? 'Deactivate' : 'Activate' }}
+          </button>
+          
+          <button mat-button color="accent" (click)="viewSubmissions(quiz._id)" *ngIf="quiz.isActive">
+            <mat-icon>analytics</mat-icon>
+            Submissions
+          </button>
+          
+          <button mat-button color="warn" (click)="deleteQuiz(quiz._id)">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

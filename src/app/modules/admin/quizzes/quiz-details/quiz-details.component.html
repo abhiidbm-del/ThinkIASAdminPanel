@@ -1,0 +1,231 @@
+<div class="quiz-details-container">
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="loading">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Loading quiz details...</p>
+    </div>
+
+    <!-- Quiz Details -->
+    <div *ngIf="!loading() && quiz()" class="quiz-details">
+        <!-- Quiz Header -->
+        <div class="quiz-info">
+
+            <mat-card>
+                <button mat-icon-button [routerLink]="['/quizzes']" class="back-btn">
+                    <mat-icon>arrow_back</mat-icon>
+                </button>
+                <mat-card-content>
+                    <h2>{{ quiz().title }}</h2>
+                    <p>{{ quiz().description || 'No description' }}</p>
+
+                    <div class="quiz-meta">
+                        <div class="meta-item">
+                            <mat-icon>help</mat-icon>
+                            <span><strong>Questions:</strong> {{ quiz().totalQuestions }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <mat-icon>toggle_on</mat-icon>
+                            <span><strong>Status:</strong> {{ quiz().isActive ? 'Active' : 'Inactive' }}</span>
+                        </div>
+                        <!-- <div class="meta-item">
+              <mat-icon>calendar_today</mat-icon>
+              <span><strong>Created:</strong> {{ quiz.createdAt | date:'medium' }}</span>
+            </div> -->
+                    </div>
+
+                    <!-- <div class="actions">
+            <button mat-raised-button color="primary" (click)="editQuiz()">
+              <mat-icon>edit</mat-icon>
+              Edit Quiz
+            </button>
+            <button mat-raised-button [color]="quiz.isActive ? 'warn' : 'accent'" 
+                    (click)="toggleQuizStatus()">
+              <mat-icon>{{ quiz.isActive ? 'toggle_off' : 'toggle_on' }}</mat-icon>
+              {{ quiz.isActive ? 'Deactivate' : 'Activate' }}
+            </button>
+          </div> -->
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <!-- Tabs -->
+        <mat-tab-group>
+            <!-- Submissions Tab -->
+            <mat-tab label="Submissions">
+                <div class="tab-content">
+                    <div class="submissions-header">
+                        <h3>Quiz Submissions</h3>
+                        <button mat-button (click)="exportSubmissions()" [disabled]="submissions().length === 0">
+                            <mat-icon>download</mat-icon>
+                            Export CSV
+                        </button>
+                    </div>
+
+                    <div *ngIf="submissionsLoading()" class="loading">
+                        <mat-spinner diameter="30"></mat-spinner>
+                        <p>Loading submissions...</p>
+                    </div>
+
+                    <div *ngIf="!submissionsLoading() && submissions().length === 0" class="no-data">
+                        <mat-icon>inbox</mat-icon>
+                        <p>No submissions yet</p>
+                    </div>
+
+                    <div *ngIf="!submissionsLoading() && submissions().length > 0">
+                        <table mat-table [dataSource]="submissions()" class="mat-elevation-z1">
+                            <!-- Name Column -->
+                            <ng-container matColumnDef="name">
+                                <th mat-header-cell *matHeaderCellDef>Name</th>
+                                <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+                            </ng-container>
+
+                            <!-- Email Column -->
+                            <ng-container matColumnDef="email">
+                                <th mat-header-cell *matHeaderCellDef>Email</th>
+                                <td mat-cell *matCellDef="let element">{{ element.email }}</td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="phone">
+                                <th mat-header-cell *matHeaderCellDef>Ph. No.</th>
+                                <td mat-cell *matCellDef="let element">{{ element.phone }}</td>
+                            </ng-container>
+
+                            <!-- Score Column -->
+                            <ng-container matColumnDef="score">
+                                <th mat-header-cell *matHeaderCellDef>Score</th>
+                                <td mat-cell *matCellDef="let element">
+                                    {{ element.score }}/{{ element.totalQuestions }}
+                                    ({{ getScorePercentage(element.score, element.totalQuestions) }}%)
+                                </td>
+                            </ng-container>
+
+                            <!-- Time Taken Column -->
+                            <ng-container matColumnDef="timeTaken">
+                                <th mat-header-cell *matHeaderCellDef>Time Taken</th>
+                                <td mat-cell *matCellDef="let element">{{ formatTime(element.timeTaken) }}</td>
+                            </ng-container>
+
+                            <!-- Submitted At Column -->
+                            <ng-container matColumnDef="submittedAt">
+                                <th mat-header-cell *matHeaderCellDef>Submitted At</th>
+                                <td mat-cell *matCellDef="let element">{{ element.submittedAt | date:'medium' }}</td>
+                            </ng-container>
+
+                            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                        </table>
+                    </div>
+                </div>
+            </mat-tab>
+
+            <!-- Leaderboard Tab -->
+            <mat-tab label="Leaderboard">
+                <div class="tab-content">
+                    <div *ngIf="leaderboardLoading()" class="loading">
+                        <mat-spinner diameter="30"></mat-spinner>
+                        <p>Loading leaderboard...</p>
+                    </div>
+
+                    <div *ngIf="!leaderboardLoading() && leaderboard().length === 0" class="no-data">
+                        <mat-icon>leaderboard</mat-icon>
+                        <p>No leaderboard data available</p>
+                    </div>
+
+                    <div *ngIf="!leaderboardLoading() && leaderboard().length > 0" class="leaderboard">
+                        <div class="leaderboard-header">
+                            <h3>Top Performers</h3>
+                            <span class="total-participants">
+                                Total Participants: {{ totalParticipants() }}
+                            </span>
+                        </div>
+
+                        <div class="leaderboard-list">
+                            <div *ngFor="let item of leaderboard(); let i = index" class="leaderboard-item"
+                                [class.top-three]="i < 3">
+                                <div class="rank">
+                                    <span class="rank-number">{{ item.rank || i + 1 }}</span>
+                                    <mat-icon *ngIf="item.rank === 1 || i === 0">emoji_events</mat-icon>
+                                    <mat-icon *ngIf="item.rank === 2 || i === 1">military_tech</mat-icon>
+                                    <mat-icon *ngIf="item.rank === 3 || i === 2">workspace_premium</mat-icon>
+                                </div>
+
+                                <div class="user-info">
+                                    <div class="user-name">{{ item.name }}</div>
+                                    <div class="user-email">{{ item.email }}</div>
+                                </div>
+
+                                <div class="score-info">
+                                    <div class="score">{{ item.score }}/{{ quiz().totalQuestions }}</div>
+                                    <div class="time">{{ item.timeTaken }}s</div>
+                                    <div class="correct-answers">{{ item.correctAnswers }} correct</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mat-tab>
+
+            <!-- Questions Tab -->
+            <mat-tab label="Questions">
+                <div class="tab-content">
+                    <div *ngIf="questionsLoading()" class="loading">
+                        <mat-spinner diameter="30"></mat-spinner>
+                        <p>Loading questions...</p>
+                    </div>
+
+                    <div *ngIf="!questionsLoading() && (!quiz().questions || quiz().questions.length === 0)"
+                        class="no-data">
+                        <mat-icon>help_outline</mat-icon>
+                        <p>No questions in this quiz</p>
+                    </div>
+
+                    <div *ngIf="!questionsLoading() && quiz().questions?.length > 0" class="questions-list">
+                        <div class="questions-header">
+                            <h3>Questions ({{ quiz().questions.length }})</h3>
+                            <button mat-button (click)="toggleLanguage()" class="language-toggle">
+                                <mat-icon>info</mat-icon>
+                                <span>
+                                    Currently in <strong>{{ getCurrentLanguageText() }}</strong>
+                                    · tap to change
+                                </span>
+                            </button>
+
+                            <!-- <div class="language-note">
+                <mat-icon>language</mat-icon>
+                <span>Currently showing: {{ getCurrentLanguageText() }}</span>
+              </div> -->
+                        </div>
+
+                        <div *ngFor="let question of quiz().questions; let i = index" class="question-item">
+                            <div class="question-header">
+                                <span class="question-number">Q{{ i + 1 }}</span>
+                                <span class="question-text" [innerHTML]="getQuestionText(question.question)"></span>
+                            </div>
+
+                            <div *ngIf="getQuestionText(question.description)" class="question-description">
+                                <div [innerHTML]="getQuestionText(question.description)"></div>
+                            </div>
+
+                            <div class="options" *ngIf="question.options?.length > 0">
+                                <div *ngFor="let option of question.options; let j = index" class="option">
+                                    <span class="option-letter">{{ getOptionLetter(j) }}</span>
+                                    <span class="option-text" [innerHTML]="getOptionText(option)"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mat-tab>
+        </mat-tab-group>
+    </div>
+
+    <!-- No Quiz Found -->
+    <div *ngIf="!loading() && !quiz()" class="no-quiz">
+        <mat-icon>quiz</mat-icon>
+        <h2>Quiz not found</h2>
+        <button mat-raised-button color="primary" [routerLink]="['/admin/quizzes']">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Quizzes
+        </button>
+    </div>
+</div>

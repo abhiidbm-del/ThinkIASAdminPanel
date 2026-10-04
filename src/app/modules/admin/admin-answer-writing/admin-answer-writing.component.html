@@ -1,0 +1,999 @@
+    <div class="admin-container">
+      
+      <!-- ==========================================
+      HEADER
+      ========================================== -->
+      <header class="admin-header">
+        <div class="header-content">
+          <div class="header-left">
+            <i class="fas fa-pen-fancy header-icon"></i>
+            <div>
+              <h1>Daily Answer Writing</h1>
+              <p class="header-subtitle">Manage exercises and review student submissions</p>
+            </div>
+          </div>
+          <button 
+            mat-raised-button 
+            color="primary" 
+            class="create-btn"
+            (click)="openCreateDialog()">
+            <i class="fas fa-plus"></i> 
+            <span>New Exercise</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ==========================================
+      TABS
+      ========================================== -->
+      <mat-tab-group 
+        #tabGroup 
+        class="main-tabs"
+        (selectedTabChange)="onTabChange($event)"
+        [selectedIndex]="selectedTabIndex">
+        
+        <!-- ==========================================
+        EXERCISES TAB
+        ========================================== -->
+        <mat-tab label="Exercises">
+          <div class="tab-content">
+            
+            <!-- Filters -->
+            <mat-card class="filters-card">
+              <mat-card-content>
+                <div class="filters-grid">
+                  <!-- Search -->
+                  <mat-form-field appearance="outline" class="search-field">
+                    <mat-label>Search Exercises</mat-label>
+                    <input 
+                      matInput 
+                      [formControl]="searchControl" 
+                      placeholder="Search by name or description"
+                      autocomplete="off">
+                    <mat-icon matSuffix>search</mat-icon>
+                  </mat-form-field>
+
+                  <!-- Date Range -->
+                  <div class="date-range-group">
+                    <mat-form-field appearance="outline" class="date-field">
+                      <mat-label>From</mat-label>
+                      <input 
+                        matInput 
+                        [matDatepicker]="fromPicker" 
+                        [(ngModel)]="fromDate" 
+                        [ngModelOptions]="{standalone: true}" 
+                        (dateChange)="applyDateFilter()">
+                      <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+                      <mat-datepicker #fromPicker></mat-datepicker>
+                    </mat-form-field>
+                    
+                    <mat-form-field appearance="outline" class="date-field">
+                      <mat-label>To</mat-label>
+                      <input 
+                        matInput 
+                        [matDatepicker]="toPicker" 
+                        [(ngModel)]="toDate" 
+                        [ngModelOptions]="{standalone: true}" 
+                        (dateChange)="applyDateFilter()">
+                      <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+                      <mat-datepicker #toPicker></mat-datepicker>
+                    </mat-form-field>
+                    
+                    <button 
+                      *ngIf="fromDate || toDate" 
+                      mat-icon-button 
+                      color="warn" 
+                      class="clear-date-btn"
+                      (click)="clearDateFilter()" 
+                      matTooltip="Clear date filters">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+
+                  <!-- Status -->
+                  <mat-form-field appearance="outline" class="status-field">
+                    <mat-label>Status</mat-label>
+                    <mat-select 
+                      [(value)]="selectedStatus" 
+                      (selectionChange)="loadExercises()">
+                      <mat-option value="">All</mat-option>
+                      <mat-option value="active">Active</mat-option>
+                      <mat-option value="inactive">Inactive</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Loading State -->
+            <div *ngIf="loading()" class="loading-state">
+              <mat-spinner diameter="40"></mat-spinner>
+              <p>Loading exercises...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="!loading() && exercises().length === 0" class="empty-state">
+              <mat-card>
+                <mat-card-content>
+                  <div class="empty-content">
+                    <i class="fas fa-inbox empty-icon"></i>
+                    <h3>No Exercises Found</h3>
+                    <p class="text-muted">Get started by creating your first answer writing exercise.</p>
+                    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+                      <i class="fas fa-plus"></i> Create Exercise
+                    </button>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+            <!-- Exercises Grid -->
+            <div *ngIf="!loading() && exercises().length > 0" class="exercises-grid">
+              <mat-card 
+  *ngFor="let exercise of exercises()" 
+  class="exercise-card"
+  [class.inactive-card]="!exercise.isActive">
+  
+  <!-- Card Header -->
+  <mat-card-header>
+    <mat-card-title>
+      <span class="exercise-title">
+        {{ exercise.name }}
+        <span class="title-separator">/</span>
+        <span class="title-hindi">{{ exercise.nameHi }}</span>
+      </span>
+      <span 
+        class="status-badge" 
+        [class.active]="exercise.isActive" 
+        [class.inactive]="!exercise.isActive">
+        <i class="fas" [class.fa-check-circle]="exercise.isActive" [class.fa-times-circle]="!exercise.isActive"></i>
+        {{ exercise.isActive ? 'Active' : 'Inactive' }}
+      </span>
+      <!-- Model Answer Button - Top Right -->
+      <button 
+        mat-icon-button 
+        class="model-answer-btn"
+        (click)="openModelAnswerModal(exercise)"
+        matTooltip="Model Answer">
+        <i class="fas fa-file-alt"></i>
+      </button>
+    </mat-card-title>
+    <mat-card-subtitle>
+      <i class="far fa-calendar-alt"></i>
+      {{ exercise.startDateTime | date:'MMM d, y, h:mm a' }} 
+      <span class="subtitle-arrow">→</span>
+      {{ exercise.endDateTime | date:'MMM d, y, h:mm a' }}
+      <span class="duration-badge">{{ getDuration(exercise) }}</span>
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  <!-- Card Content -->
+  <mat-card-content>
+    <p class="exercise-description">
+      {{ exercise.description }}
+      <span class="description-hindi" *ngIf="exercise.descriptionHi">
+        / {{ exercise.descriptionHi }}
+      </span>
+    </p>
+    
+    <div class="exercise-meta">
+      <div class="meta-item">
+        <i class="fas fa-question-circle"></i>
+        <span>{{ getQuestionsCount(exercise) }} Questions</span>
+      </div>
+      <div class="meta-item" [matBadge]="getSubmissionCount(exercise._id)" matBadgeOverlap="false">
+        <i class="fas fa-users"></i>
+        <span>Submissions</span>
+      </div>
+    </div>
+
+    <!-- PDF Links -->
+    <div class="pdf-links" *ngIf="exercise.questionPaperPDF || exercise.questionPaperPDFHi">
+      <a 
+        *ngIf="exercise.questionPaperPDF" 
+        [href]="exercise.questionPaperPDF" 
+        target="_blank" 
+        class="pdf-link english">
+        <i class="fas fa-file-pdf"></i> English PDF
+      </a>
+      <a 
+        *ngIf="exercise.questionPaperPDFHi" 
+        [href]="exercise.questionPaperPDFHi" 
+        target="_blank" 
+        class="pdf-link hindi">
+        <i class="fas fa-file-pdf"></i> हिंदी PDF
+      </a>
+    </div>
+  </mat-card-content>
+
+  <!-- Card Actions -->
+  <mat-card-actions align="end">
+    <button mat-button color="accent" (click)="openViewDialog(exercise)">
+      <i class="fas fa-eye"></i> View
+    </button>
+    <button 
+      mat-button 
+      color="primary" 
+      (click)="viewSubmissionsAndSwitchTab(exercise)"
+      [disabled]="getSubmissionCount(exercise._id) === 0">
+      <i class="fas fa-users"></i> 
+      Submissions
+      <span class="action-badge" *ngIf="getSubmissionCount(exercise._id) > 0">
+        {{ getSubmissionCount(exercise._id) }}
+      </span>
+    </button>
+    <button mat-button color="primary" (click)="openEditDialog(exercise)">
+      <i class="fas fa-edit"></i> Edit
+    </button>
+    <button 
+      mat-button 
+      [color]="exercise.isActive ? 'warn' : 'primary'" 
+      (click)="toggleExerciseStatus(exercise)">
+      <i class="fas" [class.fa-eye-slash]="exercise.isActive" [class.fa-eye]="!exercise.isActive"></i>
+      {{ exercise.isActive ? 'Deactivate' : 'Activate' }}
+    </button>
+    <button mat-button color="warn" (click)="deleteExercise(exercise)">
+      <i class="fas fa-trash"></i> Delete
+    </button>
+  </mat-card-actions>
+</mat-card>
+
+<!-- Model Answer Modal (Overlay) -->
+<!-- Model Answer Modal (Overlay) -->
+<div class="modal-overlay" *ngIf="showModelAnswerModal" (click)="closeModelAnswerModal($event)">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <i class="fas fa-file-alt"></i> 
+        Model Answer - {{ selectedExercise?.name }}
+      </h2>
+      <button class="modal-close-btn" (click)="closeModelAnswerModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Model Remark -->
+      <div class="form-group">
+        <label for="modelRemark">
+          <i class="fas fa-comment"></i> Model Remark
+        </label>
+        <div class="input-with-button">
+          <textarea 
+            id="modelRemark"
+            class="form-control textarea-control"
+            placeholder="Enter model remark..."
+            [(ngModel)]="modelAnswerData.remark"
+            rows="3">
+          </textarea>
+          <button 
+            mat-raised-button 
+            color="primary" 
+            class="submit-btn"
+            (click)="submitRemark()"
+            [disabled]="!modelAnswerData.remark">
+            <i class="fas fa-paper-plane"></i> Submit
+          </button>
+        </div>
+        <div class="success-message" *ngIf="remarkSubmitted">
+          <i class="fas fa-check-circle"></i> Remark submitted successfully!
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="section-divider">
+        <span>Model Answer</span>
+      </div>
+
+      <!-- Model Answer - English -->
+      <div class="form-group">
+        <label for="modelAnswerEnglish">
+          <i class="fas fa-language"></i> Model Answer (English)
+        </label>
+        <div class="input-with-button">
+          <textarea 
+            id="modelAnswerEnglish"
+            class="form-control textarea-control"
+            placeholder="Enter model answer in English..."
+            [(ngModel)]="modelAnswerData.answerEnglish"
+            rows="4">
+          </textarea>
+          <button 
+            mat-raised-button 
+            color="primary" 
+            class="submit-btn"
+            (click)="submitModelAnswer('english')"
+            [disabled]="!modelAnswerData.answerEnglish">
+            <i class="fas fa-save"></i> Submit
+          </button>
+        </div>
+        <div class="success-message" *ngIf="englishSubmitted">
+          <i class="fas fa-check-circle"></i> English answer submitted successfully!
+        </div>
+      </div>
+
+      <!-- Model Answer PDF - English -->
+      <div class="form-group">
+        <label for="modelAnswerPDFEnglish">
+          <i class="fas fa-file-pdf"></i> Model Answer PDF (English)
+        </label>
+        <div class="input-with-button">
+          <input 
+            id="modelAnswerPDFEnglish"
+            class="form-control"
+            type="text"
+            placeholder="Enter Google Drive URL for English PDF..."
+            [value]="modelAnswerData?.modelAnswerPDF"
+            #pdfUrlEnglish
+            >
+          <button 
+            mat-raised-button 
+            color="primary" 
+            class="submit-btn"
+            (click)="submitModelAnswerPDF('english', pdfUrlEnglish.value)">
+            <i class="fas fa-upload"></i> Upload URL
+          </button>
+        </div>
+        <div class="existing-link" *ngIf="modelAnswerData.modelAnswerPDF">
+          <i class="fas fa-link"></i>
+          <a [href]="modelAnswerData.modelAnswerPDF" target="_blank">View English PDF</a>
+        </div>
+      </div>
+
+      <!-- Model Answer - Hindi -->
+      <div class="form-group">
+        <label for="modelAnswerHindi">
+          <i class="fas fa-language"></i> Model Answer (हिंदी)
+        </label>
+        <div class="input-with-button">
+          <textarea 
+            id="modelAnswerHindi"
+            class="form-control textarea-control"
+            placeholder="हिंदी में मॉडल उत्तर दर्ज करें..."
+            [(ngModel)]="modelAnswerData.answerHindi"
+            rows="4">
+          </textarea>
+          <button 
+            mat-raised-button 
+            color="primary" 
+            class="submit-btn"
+            (click)="submitModelAnswer('hindi')"
+            [disabled]="!modelAnswerData.answerHindi">
+            <i class="fas fa-save"></i> Submit
+          </button>
+        </div>
+        <div class="success-message" *ngIf="hindiSubmitted">
+          <i class="fas fa-check-circle"></i> हिंदी answer submitted successfully!
+        </div>
+      </div>
+
+      <!-- Model Answer PDF - Hindi -->
+      <div class="form-group">
+        <label for="modelAnswerPDFHindi">
+          <i class="fas fa-file-pdf"></i> Model Answer PDF (हिंदी)
+        </label>
+        <div class="input-with-button">
+          <input 
+            id="modelAnswerPDFHindi"
+            class="form-control"
+            type="text"
+            placeholder="हिंदी PDF के लिए Google Drive URL दर्ज करें..."
+            [value]="modelAnswerData.modelAnswerPDFHi"
+            #pdfUrlHindi
+            >
+          <button 
+            mat-raised-button 
+            color="primary" 
+            class="submit-btn"
+            (click)="submitModelAnswerPDF('hindi', pdfUrlHindi.value)">
+            <i class="fas fa-upload"></i> Upload URL
+          </button>
+        </div>
+        <div class="existing-link" *ngIf="modelAnswerData.modelAnswerPDFHi">
+          <i class="fas fa-link"></i>
+          <a [href]="modelAnswerData.modelAnswerPDFHi" target="_blank">View Hindi PDF</a>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="section-divider">
+        <span>Status</span>
+      </div>
+
+      <!-- Model Toggle - Active/Deactive -->
+      <div class="form-group toggle-group">
+        <label>Toggle Status</label>
+        <div class="toggle-container">
+          <mat-slide-toggle 
+            [(ngModel)]="modelAnswerData.isActive"
+            color="primary"
+            (change)="onToggleChange()">
+            {{ modelAnswerData.isActive ? 'Active' : 'Inactive' }}
+          </mat-slide-toggle>
+          <span class="toggle-status" [class.active]="modelAnswerData.isActive" [class.inactive]="!modelAnswerData.isActive">
+            <i class="fas" [class.fa-check-circle]="modelAnswerData.isActive" [class.fa-times-circle]="!modelAnswerData.isActive"></i>
+            {{ modelAnswerData.isActive ? 'Published' : 'Draft' }}
+          </span>
+          <button 
+            mat-raised-button 
+            [color]="modelAnswerData.isActive ? 'warn' : 'primary'"
+            class="toggle-submit-btn"
+            (click)="submitToggleStatus()">
+            <i class="fas" [class.fa-eye-slash]="modelAnswerData.isActive" [class.fa-eye]="!modelAnswerData.isActive"></i>
+            {{ modelAnswerData.isActive ? 'Deactivate' : 'Activate' }}
+          </button>
+        </div>
+        <div class="success-message" *ngIf="toggleSubmitted">
+          <i class="fas fa-check-circle"></i> Status updated successfully!
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button mat-button class="close-btn" (click)="closeModelAnswerModal()">
+        <i class="fas fa-times"></i> Close
+      </button>
+    </div>
+  </div>
+</div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- ==========================================
+        SUBMISSIONS TAB
+        ========================================== -->
+        <mat-tab label="Submissions">
+          <div class="tab-content">
+            
+            <!-- Submissions Header -->
+            <div *ngIf="selectedExerciseForSubmissions" class="submissions-header">
+              <div class="header-info">
+                <h2>
+                  <i class="fas fa-file-alt"></i>
+                  {{ selectedExerciseForSubmissions.name }}
+                  <span class="header-sub">/ {{ selectedExerciseForSubmissions.nameHi }}</span>
+                </h2>
+                <p class="text-muted">{{ selectedExerciseForSubmissions.description }}</p>
+              </div>
+              <button mat-stroked-button (click)="clearSelectedExercise()">
+                <i class="fas fa-arrow-left"></i> Back to Exercises
+              </button>
+            </div>
+
+            <!-- Select Exercise Prompt -->
+            <div *ngIf="!selectedExerciseForSubmissions" class="select-prompt">
+              <mat-card>
+                <mat-card-content>
+                  <div class="prompt-content">
+                    <i class="fas fa-hand-pointer prompt-icon"></i>
+                    <h3>Select an Exercise</h3>
+                    <p>Go to the Exercises tab and click on "Submissions" for any exercise to review student answers.</p>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+            <!-- Submissions Content -->
+            <div *ngIf="selectedExerciseForSubmissions">
+              
+              <!-- Language Filter -->
+              <div class="submissions-filters">
+                <mat-form-field appearance="outline" class="language-filter">
+                  <mat-label>Filter by Language</mat-label>
+                  <mat-select 
+                    [(value)]="submissionLanguageFilter" 
+                    (selectionChange)="filterSubmissions()">
+                    <mat-option value="all">All Languages</mat-option>
+                    <mat-option value="en">English</mat-option>
+                    <mat-option value="hi">हिंदी</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                
+                <div class="submission-stats">
+                  <span class="stat-item">
+                    <i class="fas fa-users"></i>
+                    Total: {{ submissions().length }}
+                  </span>
+                  <span class="stat-item" *ngIf="submissionLanguageFilter !== 'all'">
+                    <i class="fas fa-filter"></i>
+                    Showing: {{ filteredSubmissions().length }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Loading Submissions -->
+              <div *ngIf="submissionsLoading()" class="loading-state">
+                <mat-spinner diameter="40"></mat-spinner>
+                <p>Loading submissions...</p>
+              </div>
+
+              <!-- No Submissions -->
+              <div *ngIf="!submissionsLoading() && filteredSubmissions().length === 0" class="empty-state">
+                <mat-card>
+                  <mat-card-content>
+                    <div class="empty-content">
+                      <i class="fas fa-users-slash empty-icon"></i>
+                      <h3>No Submissions Yet</h3>
+                      <p class="text-muted">Students haven't submitted answers for this exercise yet.</p>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+
+              <!-- Submissions List -->
+              <div *ngIf="!submissionsLoading() && filteredSubmissions().length > 0" class="submissions-list">
+  <mat-accordion>
+    <mat-expansion-panel 
+      *ngFor="let submission of filteredSubmissions()" 
+      class="submission-panel"
+      [expanded]="false">
+      
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="panel-title-content">
+            <i class="fas fa-user-graduate student-icon"></i>
+            <span class="student-name">{{ submission.studentId?.fullName || 'Unknown Student' }}</span>
+          </div>
+        </mat-panel-title>
+        <mat-panel-description>
+          <div class="panel-description-content">
+            <span class="lang-badge" [class.hindi]="submission.submissionLanguage === 'hi'">
+              {{ submission.submissionLanguage === 'hi' ? 'हिंदी' : 'English' }}
+            </span>
+            <span class="submission-date">
+              <i class="far fa-clock"></i>
+              {{ submission.submittedAt | date:'MMM d, y, h:mm a' }}
+            </span>
+            <span 
+              class="submission-status" 
+              [class.late]="submission.isLate" 
+              [class.on-time]="!submission.isLate">
+              <i class="fas" [class.fa-clock]="submission.isLate" [class.fa-check]="!submission.isLate"></i>
+              {{ submission.isLate ? 'Late' : 'On Time' }}
+            </span>
+          </div>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <div class="submission-details">
+        <!-- Question Header -->
+        <div class="questions-header">
+          <span class="questions-title">Questions</span>
+        </div>
+
+        <!-- Each question as a row with side-by-side layout -->
+        <div *ngFor="let answer of submission.answers; let i = index" class="question-row">
+          <!-- Question Number -->
+          <div class="question-label">
+            <!-- <span class="question-number">Q{{ i + 1 }}</span> -->
+          </div>
+
+          <!-- Submitted Answer (2 parts) -->
+          <div class="submitted-answer-col">
+            <div class="section-header">
+              <i class="fas fa-file-pdf"></i>
+              <span>Submitted Answer</span>
+              <span class="answer-language-badge">
+                {{ answer.language === 'hi' ? 'हिंदी' : 'English' }}
+              </span>
+            </div>
+            <div class="answer-content">
+              <a [href]="answer.answerPDF" target="_blank" mat-raised-button color="primary" class="answer-link">
+                <i class="fas fa-file-pdf"></i> View PDF
+              </a>
+            </div>
+          </div>
+
+          <!-- Admin Evaluation (3 parts) -->
+          <div class="evaluation-col">
+            <div class="section-header">
+              <i class="fas fa-clipboard-check"></i>
+              <span>Admin Evaluation</span>
+              <span class="evaluation-status-badge" *ngIf="getEvaluationUrl(submission._id, i)">
+                <i class="fas fa-check-circle"></i> Evaluated
+              </span>
+            </div>
+            <div class="evaluation-content">
+              <mat-form-field appearance="outline" class="evaluation-input">
+                <mat-label>Google Drive URL</mat-label>
+                <input 
+                  matInput 
+                  [placeholder]="'Enter evaluated answer PDF URL'"
+                  [value]="getEvaluationUrl(submission._id, i)"
+                  #evalUrlInput
+                  >
+                <mat-icon matSuffix>drive</mat-icon>
+              </mat-form-field>
+
+              <div class="evaluation-actions">
+                <button 
+                  mat-raised-button 
+                  color="primary" 
+                  class="save-eval-btn"
+                  (click)="submitEvaluation(submission._id, i, evalUrlInput.value)">
+                  <i class="fas fa-save"></i> Save
+                </button>
+                
+                <button 
+                  *ngIf="getEvaluationUrl(submission._id, i)"
+                  mat-stroked-button 
+                  color="accent" 
+                  class="view-eval-btn"
+                  (click)="openEvaluation(getEvaluationUrl(submission._id, i))">
+                  <i class="fas fa-external-link-alt"></i> View
+                </button>
+                
+                <button 
+                  *ngIf="getEvaluationUrl(submission._id, i)"
+                  mat-icon-button 
+                  color="warn" 
+                  class="clear-eval-btn"
+                  matTooltip="Clear evaluation URL"
+                  (click)="evaluationUrls.delete(submission._id + '_' + i); evalUrlInput.value = ''">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+
+    <!-- ==========================================
+    VIEW EXERCISE DIALOG
+    ========================================== -->
+    <ng-template #viewExerciseDialog>
+      <div class="view-dialog-container">
+        
+        <!-- Dialog Header -->
+        <div class="dialog-header gradient-header">
+          <div class="header-content">
+            <i class="fas fa-file-alt header-icon"></i>
+            <div>
+              <h2>{{ viewingExercise?.name }}</h2>
+              <p class="header-subtitle" *ngIf="viewingExercise?.nameHi">{{ viewingExercise?.nameHi }}</p>
+            </div>
+          </div>
+          <button class="close-btn" (click)="closeViewDialog()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Dialog Body -->
+        <div class="dialog-body">
+          
+          <!-- Status Row -->
+          <div class="status-row">
+            <span class="status-tag" [class.active]="viewingExercise?.isActive" [class.inactive]="!viewingExercise?.isActive">
+              <i class="fas" [class.fa-check-circle]="viewingExercise?.isActive" [class.fa-times-circle]="!viewingExercise?.isActive"></i>
+              {{ viewingExercise?.isActive ? 'Active' : 'Inactive' }}
+            </span>
+            <span class="order-tag">
+              <i class="fas fa-sort-numeric-down"></i>
+              Order: {{ viewingExercise?.order || 0 }}
+            </span>
+            <span class="duration-tag">
+              <i class="far fa-clock"></i>
+              {{ getDuration(viewingExercise) }}
+            </span>
+          </div>
+
+          <!-- Description -->
+          <div class="info-section">
+            <div class="section-header">
+              <i class="fas fa-align-left"></i>
+              <h3>Description</h3>
+            </div>
+            <div class="description-grid">
+              <div class="desc-box english">
+                <span class="lang-label">English</span>
+                <p>{{ viewingExercise?.description || 'Not provided' }}</p>
+              </div>
+              <div class="desc-box hindi">
+                <span class="lang-label">हिंदी</span>
+                <p>{{ viewingExercise?.descriptionHi || 'Not provided' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Questions -->
+          <div class="info-section">
+            <div class="section-header">
+              <i class="fas fa-question-circle"></i>
+              <h3>Questions ({{ viewingExercise?.questions?.length || 0 }})</h3>
+            </div>
+            <div class="questions-list">
+              <div *ngFor="let question of viewingExercise?.questions; let i = index" class="question-card">
+                <div class="question-number">Q{{ i + 1 }}</div>
+                <div class="question-text">
+                  <p class="en">{{ question.questionText }}</p>
+                  <p class="hi" *ngIf="question.questionTextHi">{{ question.questionTextHi }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PDF Links -->
+          <div *ngIf="viewingExercise?.questionPaperPDF || viewingExercise?.questionPaperPDFHi" class="info-section">
+            <div class="section-header">
+              <i class="fas fa-file-pdf"></i>
+              <h3>Question Papers</h3>
+            </div>
+            <div class="pdf-grid">
+              <a *ngIf="viewingExercise?.questionPaperPDF" [href]="viewingExercise?.questionPaperPDF" target="_blank" class="pdf-btn english">
+                <i class="fas fa-file-pdf"></i>
+                <span>English PDF</span>
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+              <a *ngIf="viewingExercise?.questionPaperPDFHi" [href]="viewingExercise?.questionPaperPDFHi" target="_blank" class="pdf-btn hindi">
+                <i class="fas fa-file-pdf"></i>
+                <span>हिंदी PDF</span>
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Exercise Info -->
+          <div class="info-section">
+            <div class="section-header">
+              <i class="fas fa-info-circle"></i>
+              <h3>Exercise Information</h3>
+            </div>
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-icon"><i class="far fa-calendar-alt"></i></div>
+                <div>
+                  <div class="info-label">Start Time</div>
+                  <div class="info-value">{{ viewingExercise?.startDateTime | date:'MMM d, y, h:mm a' }}</div>
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="info-icon"><i class="far fa-calendar-check"></i></div>
+                <div>
+                  <div class="info-label">End Time</div>
+                  <div class="info-value">{{ viewingExercise?.endDateTime | date:'MMM d, y, h:mm a' }}</div>
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="info-icon"><i class="fas fa-clock"></i></div>
+                <div>
+                  <div class="info-label">Duration</div>
+                  <div class="info-value">{{ getDuration(viewingExercise) }}</div>
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="info-icon"><i class="fas fa-list-ol"></i></div>
+                <div>
+                  <div class="info-label">Total Questions</div>
+                  <div class="info-value">{{ viewingExercise?.questions?.length || 0 }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dialog Footer -->
+        <div class="dialog-footer">
+          <button mat-button class="close-footer-btn" (click)="closeViewDialog()">
+            <i class="fas fa-times"></i> Close
+          </button>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- ==========================================
+    CREATE/EDIT EXERCISE DIALOG
+    ========================================== -->
+    <ng-template #exerciseDialog>
+      <div class="form-dialog-container">
+        
+        <!-- Dialog Header -->
+        <div class="dialog-header">
+          <h2>
+            <i class="fas" [class.fa-plus-circle]="!editingExercise" [class.fa-edit]="editingExercise"></i>
+            {{ editingExercise ? 'Edit' : 'Create' }} Exercise
+          </h2>
+          <button class="close-btn" (click)="closeDialog()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Form -->
+        <form [formGroup]="exerciseForm" (ngSubmit)="onSubmit()" class="exercise-form">
+          
+          <!-- Dialog Body -->
+          <div class="dialog-body form-body">
+            
+            <!-- Basic Information -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Basic Information
+              </h3>
+              
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Exercise Name (English) *</mat-label>
+                  <input matInput formControlName="name" placeholder="e.g., GS Paper 1 - History Optional">
+                  <mat-error *ngIf="exerciseForm.get('name')?.hasError('required')">Name is required</mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Exercise Name (हिंदी)</mat-label>
+                  <input matInput formControlName="nameHi" placeholder="जीएस पेपर 1 - इतिहास वैकल्पिक">
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Description (English) *</mat-label>
+                  <textarea matInput formControlName="description" rows="3" placeholder="Enter detailed description"></textarea>
+                  <mat-error *ngIf="exerciseForm.get('description')?.hasError('required')">Description is required</mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Description (हिंदी)</mat-label>
+                  <textarea matInput formControlName="descriptionHi" rows="3" placeholder="हिंदी में विवरण दर्ज करें"></textarea>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Questions -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="fas fa-question-circle"></i>
+                Questions *
+              </h3>
+              
+              <div formArrayName="questions" class="questions-container">
+                <div *ngFor="let q of getQuestionControls(); let i = index" class="question-group" [formGroupName]="i">
+                  <div class="question-header">
+                    <span class="question-number">Question {{ i + 1 }}</span>
+                    <button 
+                      mat-icon-button 
+                      color="warn" 
+                      type="button" 
+                      class="remove-btn"
+                      (click)="removeQuestion(i)"
+                      matTooltip="Remove this question">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                  
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Question Text (English) *</mat-label>
+                    <textarea matInput formControlName="questionText" rows="2" placeholder="Enter question text"></textarea>
+                    <mat-error *ngIf="q.get('questionText')?.hasError('required')">Question text is required</mat-error>
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Question Text (हिंदी)</mat-label>
+                    <textarea matInput formControlName="questionTextHi" rows="2" placeholder="हिंदी में प्रश्न दर्ज करें"></textarea>
+                  </mat-form-field>
+                </div>
+                
+                <button mat-stroked-button type="button" class="add-question-btn" (click)="addQuestion()">
+                  <i class="fas fa-plus"></i> Add Question
+                </button>
+              </div>
+            </div>
+
+            <!-- PDF Links -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="fas fa-file-pdf"></i>
+                Question Papers (PDF)
+              </h3>
+              
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>PDF URL (English)</mat-label>
+                  <input matInput formControlName="questionPaperPDF" placeholder="https://example.com/question-paper.pdf">
+                </mat-form-field>
+              </div>
+              
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>PDF URL (हिंदी)</mat-label>
+                  <input matInput formControlName="questionPaperPDFHi" placeholder="https://example.com/hindi-question-paper.pdf">
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Schedule -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="far fa-calendar-alt"></i>
+                Schedule
+              </h3>
+              
+              <div class="form-row two-column">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Start Date & Time *</mat-label>
+                  <input 
+                    matInput 
+                    type="datetime-local" 
+                    formControlName="startDateTime" 
+                    (change)="onDateTimeChange()">
+                  <mat-icon matSuffix>schedule</mat-icon>
+                  <mat-error *ngIf="exerciseForm.get('startDateTime')?.hasError('required')">
+                    Start time is required
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>End Date & Time *</mat-label>
+                  <input 
+                    matInput 
+                    type="datetime-local" 
+                    formControlName="endDateTime" 
+                    >
+                  <mat-icon matSuffix>schedule</mat-icon>
+                  <mat-hint>Must be after start time</mat-hint>
+                  <mat-error *ngIf="exerciseForm.get('endDateTime')?.hasError('invalidEndTime')">
+                    End time must be after start time
+                  </mat-error>
+                  <mat-error *ngIf="exerciseForm.get('endDateTime')?.hasError('required')">
+                    End time is required
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Additional Settings -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="fas fa-cog"></i>
+                Additional Settings
+              </h3>
+              
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Display Order</mat-label>
+                  <input matInput type="number" formControlName="order" min="0">
+                  <mat-hint>Lower numbers appear first</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row" *ngIf="editingExercise">
+                <mat-checkbox formControlName="isActive" color="primary">
+                  <span class="checkbox-label">Active Exercise</span>
+                  <span class="checkbox-hint">Students can access and submit answers</span>
+                </mat-checkbox>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dialog Footer -->
+          <div class="dialog-footer form-footer">
+            <button mat-button type="button" class="cancel-btn" (click)="closeDialog()">
+              Cancel
+            </button>
+            <button 
+              mat-raised-button 
+              color="primary" 
+              type="submit" 
+              class="submit-btn"
+              [disabled]="!exerciseForm.valid || submitting()">
+              <mat-spinner *ngIf="submitting()" diameter="20"></mat-spinner>
+              <span *ngIf="!submitting()">
+                <i class="fas" [class.fa-plus]="!editingExercise" [class.fa-save]="editingExercise"></i>
+                {{ editingExercise ? 'Update Exercise' : 'Create Exercise' }}
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </ng-template>

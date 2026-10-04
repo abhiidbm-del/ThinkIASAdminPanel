@@ -1,0 +1,54 @@
+<main class="page">
+  <header class="page-header">
+    <div>
+      <div class="eyebrow"><span class="eyebrow-dot"></span> People and opportunities</div>
+      <h1>{{ 'Careers' | t }}</h1>
+      <p>Build the team shaping the next generation of civil services learning.</p>
+    </div>
+    <button class="primary-button" (click)="edit({type:'full-time', yearsOfExperience:0})"><span>+</span>{{language.hindi ? 'नौकरी जोड़ें' : 'Add job'}}</button>
+  </header>
+
+  <p *ngIf="message" class="message" role="alert">{{message}}</p>
+
+  <section *ngIf="form" class="editor-panel">
+    <div class="panel-heading">
+      <div><span class="section-kicker">Job listing</span><h2>{{form._id ? 'Edit opening' : 'Create an opening'}}</h2></div>
+      <button class="icon-button" type="button" aria-label="Close editor" (click)="form=null">×</button>
+    </div>
+    <form (ngSubmit)="save()">
+      <div class="form-grid">
+        <label>{{ 'Title' | t }}<input name="title" [(ngModel)]="form.title" required maxlength="100" placeholder="e.g. GS Faculty - History"></label>
+        <label>{{ 'Title (Hindi)' | t }}<input name="titleHindi" [(ngModel)]="form.titleHindi" maxlength="100" placeholder="हिंदी शीर्षक"></label>
+        <label class="wide-field">{{ 'Description' | t }}<textarea name="description" [(ngModel)]="form.description" required placeholder="Describe the role and its impact"></textarea></label>
+        <label class="wide-field">{{ 'Description (Hindi)' | t }}<textarea name="descriptionHindi" [(ngModel)]="form.descriptionHindi" placeholder="भूमिका का विवरण"></textarea></label>
+        <label>{{ 'Location' | t }}<input name="location" [(ngModel)]="form.location" required placeholder="New Delhi / Remote"></label>
+        <label>{{language.hindi ? 'स्थान (हिंदी)' : 'Location (Hindi)'}}<input name="locationHindi" [(ngModel)]="form.locationHindi" placeholder="स्थान"></label>
+        <label>{{ 'Type' | t }}<select name="type" [(ngModel)]="form.type"><option *ngFor="let type of types" [value]="type">{{type}}</option></select></label>
+        <label>{{language.hindi ? 'अनुभव (वर्ष)' : 'Experience (years)'}}<input name="yearsOfExperience" type="number" min="0" max="50" [(ngModel)]="form.yearsOfExperience" required></label>
+      </div>
+      <label class="check-field"><input name="requireDemoVideo" type="checkbox" [(ngModel)]="form.requireDemoVideo"><span>{{ 'Demo Video Required' | t }}</span></label>
+      <div class="form-actions"><button class="secondary-button" type="button" (click)="form=null">{{ 'Cancel' | t }}</button><button class="primary-button" type="submit" [disabled]="saving">{{ 'Save' | t }}</button></div>
+    </form>
+  </section>
+
+  <section class="list-heading"><div><span class="section-kicker">Open roles</span><h2>Current opportunities</h2></div><span class="count-badge">{{jobs.length}} roles</span></section>
+  <section class="job-list">
+    <div *ngIf="!jobs.length" class="empty-state"><span class="empty-icon">✦</span><h3>No openings yet</h3><p>Add your first role to start receiving applications.</p></div>
+    <article *ngFor="let job of jobs" class="job-card">
+      <div class="job-accent"></div>
+      <div class="job-content">
+        <div class="job-topline"><span class="job-type">{{job.type}}</span><span class="status" [class.inactive]="!job.isActive"><i></i>{{(job.isActive ? 'Active' : 'Inactive') | t}}</span></div>
+        <h3>{{job.title | t:job.titleHindi}}</h3>
+        <p class="job-description">{{job.description | t:job.descriptionHindi}}</p>
+        <div class="job-meta"><span>⌖ {{job.location}}</span><span>◷ {{job.yearsOfExperience || 0}}+ years</span></div>
+        <div class="job-actions"><button class="text-button" (click)="edit(job)">{{ 'Edit' | t }}</button><button class="text-button" (click)="toggle(job)">{{language.hindi ? 'स्थिति बदलें' : 'Toggle status'}}</button><button class="outline-button" (click)="applications(job)">{{language.hindi ? 'आवेदन देखें' : 'View applications'}} <span>→</span></button></div>
+      </div>
+    </article>
+  </section>
+
+  <section *ngIf="selectedJob" class="applications-panel">
+    <div class="panel-heading"><div><span class="section-kicker">Candidate pipeline</span><h2>{{selectedJob.title | t:selectedJob.titleHindi}}</h2></div><span class="count-badge">{{candidates.length}} applications</span></div>
+    <p *ngIf="!candidates.length" class="empty-applications">{{language.hindi ? 'कोई आवेदन नहीं मिला।' : 'No applications found.'}}</p>
+    <article *ngFor="let candidate of candidates" class="candidate-row"><div class="avatar">{{candidate.name?.charAt(0)}}</div><div class="candidate-info"><strong>{{candidate.name}}</strong><p>{{candidate.email}} · {{candidate.contactNo}}</p></div><div class="candidate-actions"><button class="outline-button" (click)="download(candidate)">{{language.hindi ? 'बायोडाटा डाउनलोड करें' : 'Download resume'}}</button><a *ngIf="candidate.demoVideoLink" [href]="candidate.demoVideoLink" target="_blank" rel="noopener">{{language.hindi ? 'डेमो वीडियो' : 'Demo video'}}</a></div></article>
+  </section>
+</main>

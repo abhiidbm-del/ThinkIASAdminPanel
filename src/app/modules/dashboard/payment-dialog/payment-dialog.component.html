@@ -1,0 +1,107 @@
+<div class="payment-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ 'Complete Your Payment' | t }}</h2>
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <form [formGroup]="paymentForm" class="payment-form">
+      
+      <!-- Selected Plan Display -->
+      <div class="selected-plan">
+        <h3>{{ 'Selected Plan:' | t }}<span class="plan-name">{{ getPlanName(selectedPlan()) }}</span></h3>
+        <div class="plan-amount">
+          <span class="amount">₹{{ getPlanAmount(selectedPlan()) }}</span>
+          <span class="duration">{{ '/ lifetime access' | t }}</span>
+        </div>
+      </div>
+
+      <!-- Plan Selection -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ 'Choose Plan' | t }}</mat-label>
+        <mat-select formControlName="plan" (selectionChange)="onPlanChange($event.value)">
+          <mat-option value="pre">
+            PRE Foundation - ₹499
+          </mat-option>
+          <mat-option value="mains">
+            MAINS Mastery - ₹699
+          </mat-option>
+          <mat-option value="combo">
+            COMBO Complete - ₹999
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>school</mat-icon>
+      </mat-form-field>
+
+      <!-- Bank Selection -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ 'Select Bank' | t }}</mat-label>
+        <mat-select formControlName="bank" required>
+          <mat-option value="sbi">
+            <div class="bank-option">
+              <span>State Bank of India</span>
+            </div>
+          </mat-option>
+          <mat-option value="icici">
+            <div class="bank-option">
+              <span>ICICI Bank</span>
+            </div>
+          </mat-option>
+          <mat-option value="hdfc">
+            <div class="bank-option">
+              <span>HDFC Bank</span>
+            </div>
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>account_balance</mat-icon>
+        <mat-error *ngIf="paymentForm.get('bank')?.hasError('required')">{{ 'Please select a bank' | t }}</mat-error>
+      </mat-form-field>
+
+      <!-- Payment Summary -->
+      <mat-card class="payment-summary">
+        <mat-card-header>
+          <mat-card-title>{{ 'Payment Summary' | t }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="summary-row">
+            <span>{{ 'Plan Fee:' | t }}</span>
+            <span>₹{{ getPlanAmount(selectedPlan()) }}</span>
+          </div>
+          <div class="summary-row">
+            <span>GST (18%):</span>
+            <span>₹{{ calculateGST() }}</span>
+          </div>
+          <div class="summary-row total">
+            <span><strong>{{ 'Total Amount:' | t }}</strong></span>
+            <span><strong>₹{{ calculateTotal() }}</strong></span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Terms and Conditions -->
+      <div class="terms-section">
+        <mat-checkbox formControlName="acceptTerms" color="primary">{{ 'I agree to the' | t }}<a href="/terms" target="_blank">{{ 'Terms and Conditions' | t }}</a> and 
+          <a href="/privacy" target="_blank">{{ 'Privacy Policy' | t }}</a>
+        </mat-checkbox>
+        <mat-error *ngIf="paymentForm.get('acceptTerms')?.hasError('required') && paymentForm.get('acceptTerms')?.touched">{{ 'You must accept the terms and conditions' | t }}</mat-error>
+      </div>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-button (click)="onCancel()" [disabled]="processing()">
+      {{ 'Cancel' | t }}
+    </button>
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onPayNow()"
+            [disabled]="!paymentForm.valid || processing()"
+            class="pay-button">
+      <mat-spinner diameter="20" *ngIf="processing()"></mat-spinner>
+      <span *ngIf="!processing()">Pay Now ₹{{ calculateTotal() }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>

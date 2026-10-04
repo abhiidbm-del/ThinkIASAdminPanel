@@ -1,0 +1,54 @@
+<main class="page">
+  <header>
+    <div>
+      <h1>{{ 'Exam Monitoring' | t }}</h1>
+      <p>{{ 'Watch student screens live and review saved recordings after submission.' | t }}</p>
+    </div>
+    <button type="button" (click)="load()">{{ 'Refresh' | t }}</button>
+  </header>
+  <nav class="tabs">
+    <button type="button" [class.active]="activeTab()==='live'" (click)="activeTab.set('live')">Live Students ({{liveCount()}})</button>
+    <button type="button" [class.active]="activeTab()==='history'" (click)="activeTab.set('history')">{{ 'All Sessions' | t }}</button>
+  </nav>
+  <p *ngIf="loading()">{{ 'Loading sessions...' | t }}</p>
+  <section class="grid">
+    <article *ngFor="let item of visibleSessions()">
+      <div class="preview">
+        <img *ngIf="item.latestSnapshotUrl" [src]="item.latestSnapshotUrl" alt="Latest snapshot" referrerpolicy="no-referrer">
+        <span *ngIf="!item.latestSnapshotUrl">{{ 'No snapshot' | t }}</span>
+        <b [class.online]="item.online">{{ (item.online?'LIVE':(item.status|uppercase)) | t }}</b>
+      </div>
+      <h2>{{ (item.student?.fullName||'Student') | t }}</h2>
+      <p>{{item.student?.email}}</p>
+      <strong>{{item.test?.title||'Exam'}}</strong>
+      <div class="meta">
+        <span>{{item.snapshotCount||0}} snapshots</span>
+        <span>{{item.violations.length||0}} flags</span>
+      </div>
+      <div class="card-actions">
+        <button class="watch" type="button" *ngIf="item.online" (click)="watch(item)">{{ '▶ Watch Live' | t }}</button>
+        <button type="button" *ngIf="item.recordingUrl" (click)="viewRecording(item)">{{ 'View recording' | t }}</button>
+        <button class="delete" type="button" (click)="deleteSession(item,$event)">Delete</button>
+      </div>
+      <p *ngIf="item.status === 'completed' && !item.recordingUrl">{{ 'Recording upload pending' | t }}</p>
+    </article>
+  </section>
+  <p *ngIf="!loading()&&!visibleSessions().length">{{activeTab()==='live'?'No students are live right now.':'No monitoring sessions found.'}}</p>
+  <div class="viewer-backdrop" *ngIf="selected() as item">
+    <section class="viewer">
+      <header>
+        <div>
+          <h2>{{item.student?.fullName}} — {{item.test?.title}}</h2>
+          <span [class.connected]="liveStatus()==='LIVE'">{{liveStatus()}}</span>
+        </div>
+        <div class="viewer-actions">
+          <button class="delete" type="button" (click)="deleteSession(item)">Delete</button>
+          <button type="button" (click)="closeViewer()">{{ '✕ Close' | t }}</button>
+        </div>
+      </header>
+      <video *ngIf="item.online" #liveVideo autoplay playsinline controls></video>
+      <video *ngIf="!item.online && item.recordingUrl" [src]="item.recordingUrl" playsinline controls preload="metadata"></video>
+      <p>{{ (item.online ? 'Live screen, camera and audio from the student exam.' : 'Test finished. Screen sharing and recording have stopped.') | t }}</p>
+    </section>
+  </div>
+</main>

@@ -1,0 +1,28 @@
+<div class="page">
+  <div class="page-header"><div><h2>Plan Benefits</h2><p>Manage the feature cards displayed on the Integrated Program page.</p></div><button class="primary" (click)="openCreate()">+ Add feature</button></div>
+  <div *ngIf="error" class="message error">{{ error }}</div>
+
+  <form *ngIf="showForm" class="form-card" (ngSubmit)="save()">
+    <div class="form-header"><h3>{{ editingId ? 'Edit feature' : 'New feature' }}</h3><button type="button" class="icon-button" (click)="closeForm()">&times;</button></div>
+    <div class="form-grid">
+      <label>Title (English)<input name="title" [(ngModel)]="form.title" required maxlength="200"></label>
+      <label>Title (Hindi)<input name="titleHindi" [(ngModel)]="form.titleHindi" maxlength="250"></label>
+      <label class="wide">Description (English)<textarea name="description" [(ngModel)]="form.description" required rows="4"></textarea></label>
+      <label class="wide">Description (Hindi)<textarea name="descriptionHindi" [(ngModel)]="form.descriptionHindi" rows="4"></textarea></label>
+      <label>Bullet points (English)<small>One point per line</small><textarea name="pointsText" [(ngModel)]="pointsText" rows="7"></textarea></label>
+      <label>Bullet points (Hindi)<small>One point per line, in matching order</small><textarea name="pointsHindiText" [(ngModel)]="pointsHindiText" rows="7"></textarea></label>
+      <label class="wide">Footer text (English, optional)<textarea name="footer" [(ngModel)]="form.footer" rows="3"></textarea></label>
+      <label class="wide">Footer text (Hindi, optional)<textarea name="footerHindi" [(ngModel)]="form.footerHindi" rows="3"></textarea></label>
+      <label>Bootstrap icon class<input name="icon" [(ngModel)]="form.icon" placeholder="bi-person-badge"><small>Example: bi-file-earmark-text</small></label>
+      <label>Display order<input name="displayOrder" type="number" min="0" [(ngModel)]="form.displayOrder"></label>
+      <label class="checkbox"><input name="isActive" type="checkbox" [(ngModel)]="form.isActive"> Active on website</label>
+    </div>
+    <div class="form-actions"><button type="button" class="secondary" (click)="closeForm()">Cancel</button><button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Saving...' : (editingId ? 'Update' : 'Save') }}</button></div>
+  </form>
+
+  <div *ngIf="loading" class="state">Loading support features...</div>
+  <div *ngIf="!loading && features.length === 0" class="state">No dynamic features yet. The website continues showing its current default cards until you add one.</div>
+  <div *ngIf="!loading && features.length" class="table-card"><table><thead><tr><th>Order</th><th>Feature</th><th>Points</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+    <tr *ngFor="let item of features"><td>{{ item.displayOrder }}</td><td><strong>{{ item.title }}</strong><span>{{ item.titleHindi || '—' }}</span></td><td>{{ item.points.length }}</td><td><span class="status" [class.inactive]="!item.isActive">{{ item.isActive ? 'Active' : 'Hidden' }}</span></td><td class="actions"><button (click)="openEdit(item)">Edit</button><button class="danger" (click)="remove(item)">Delete</button></td></tr>
+  </tbody></table></div>
+</div>

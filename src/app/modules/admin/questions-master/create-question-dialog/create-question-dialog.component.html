@@ -1,0 +1,406 @@
+<div class="create-question-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ isEdit() ? 'Edit Question' : 'Create New Question' }}</h2>
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <form [formGroup]="questionForm" (ngSubmit)="onSubmit()" class="question-form">
+      <!-- Questions Section -->
+      <div class="questions-section">
+        <div class="section-header">
+          <h3 class="section-title">Questions ({{ questions.length }})</h3>
+          <div class="action-buttons" *ngIf="!isEdit()">
+            <button type="button" mat-raised-button color="primary" (click)="addQuestion()" class="add-question-btn">
+              <mat-icon>add_circle</mat-icon>
+              Add Question
+            </button>
+            <button *ngIf="questions.length > 0" type="button" mat-stroked-button color="warn"
+              (click)="clearAllQuestions()">
+              <mat-icon>clear_all</mat-icon>
+              Clear All
+            </button>
+          </div>
+        </div>
+
+        <!-- Questions List -->
+        <div class="questions-list" *ngIf="questions.length > 0">
+          <div *ngFor="let question of questions.controls; let i = index" class="question-card">
+            <div class="question-header">
+              <h4 class="question-number">Question {{ i + 1 }}</h4>
+              <button type="button" mat-icon-button color="warn" (click)="removeQuestion(i)"
+                *ngIf="questions.length > 1" matTooltip="Delete question" class="delete-btn">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+
+            <!-- Tags Section -->
+            <!-- Tags Section -->
+<!-- Tags Section -->
+<div class="tags-section">
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Tags</mat-label>
+    <mat-select [formControl]="getTagsControl(i)" multiple panelClass="question-tags-panel question-correct-answer-panel" #tagSelect>
+      <!-- Search input (outside the select but visually inside) -->
+      <div class="tag-search-container" (click)="$event.stopPropagation()">
+        <mat-form-field appearance="fill" class="tag-search-field">
+          <input matInput 
+                 #tagSearchInput
+                 [value]="tagSearchQuery[i]"
+                 (input)="onTagSearchInput($event, i)"
+                 placeholder="Search tags..."
+                 class="tag-search-input">
+          <button mat-icon-button matSuffix *ngIf="tagSearchQuery[i]" (click)="clearTagSearch(i)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+      
+      <!-- No results message -->
+      <mat-option *ngIf="filteredTags[i]?.length === 0" disabled>
+        <div class="no-tags-found">
+          <mat-icon>search_off</mat-icon>
+          <span>No tags found matching "{{ tagSearchQuery[i] }}"</span>
+        </div>
+      </mat-option>
+      
+      <!-- Filtered tags -->
+      <mat-option *ngFor="let tag of filteredTags[i]" [value]="tag._id">
+        <div class="tag-option-content">
+          <span class="tag-text">{{ tag.tag }}</span>
+          <span class="tag-match-badge" *ngIf="isExactMatch(tag.tag, tagSearchQuery[i])">
+            <mat-icon>star</mat-icon>
+            Exact match
+          </span>
+        </div>
+      </mat-option>
+    </mat-select>
+    <mat-icon matSuffix>local_offer</mat-icon>
+  </mat-form-field>
+  <div class="tag-actions">
+    <button type="button" mat-button color="primary" class="add-tag-btn" (click)="openAddTagDialog(i)">
+      <mat-icon>add</mat-icon>
+      Add New Tag
+    </button>
+  </div>
+</div>
+
+            <!-- Language Sections Container -->
+            <!-- Language Sections Container -->
+<div class="language-sections-container">
+  <!-- English Section -->
+  <div class="language-section" [class.full-width]="!showHindiSection(i)" *ngIf="showEnglishSection(i)">
+    <div class="language-header">
+      <h5 class="language-title">
+        <mat-icon>language</mat-icon>
+        English
+      </h5>
+      <button type="button" mat-icon-button color="warn" 
+              (click)="removeLanguageSection(i, 'english')" 
+              matTooltip="Remove English section">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+    
+    <div class="ckeditor-field">
+      <label class="ckeditor-label">Question Text (English) *</label>
+      <ckeditor
+        [editor]="Editor"
+        [config]="editorConfig"
+        [formControl]="getQuestionControl(i, 'english')"
+        class="ckeditor-full-width">
+      </ckeditor>
+    </div>
+
+    <div class="ckeditor-field">
+      <label class="ckeditor-label">Question Description (English - Optional)</label>
+      <ckeditor
+        [editor]="Editor"
+        [config]="editorConfig"
+        [formControl]="getDescriptionControl(i, 'english')"
+        class="ckeditor-full-width">
+      </ckeditor>
+    </div>
+
+    <!-- English Options Section -->
+    <div class="options-section" *ngIf="showEnglishSection(i)">
+      <h6 class="options-subtitle">English Options</h6>
+      <div class="options-grid">
+        <div class="option-row">
+          <div class="option-pair">
+            <div class="ckeditor-field option-field">
+              <label class="ckeditor-label">Option A (English) *</label>
+              <ckeditor
+                [editor]="Editor"
+                [config]="editorConfig"
+                [formControl]="getOptionControl(i, 0, 'english')"
+                class="ckeditor-full-width">
+              </ckeditor>
+            </div>
+            <div class="ckeditor-field option-field">
+              <label class="ckeditor-label">Option B (English) *</label>
+              <ckeditor
+                [editor]="Editor"
+                [config]="editorConfig"
+                [formControl]="getOptionControl(i, 1, 'english')"
+                class="ckeditor-full-width">
+              </ckeditor>
+            </div>
+          </div>
+        </div>
+        <div class="option-row">
+          <div class="option-pair">
+            <div class="ckeditor-field option-field">
+              <label class="ckeditor-label">Option C (English) *</label>
+              <ckeditor
+                [editor]="Editor"
+                [config]="editorConfig"
+                [formControl]="getOptionControl(i, 2, 'english')"
+                class="ckeditor-full-width">
+              </ckeditor>
+            </div>
+            <div class="ckeditor-field option-field">
+              <label class="ckeditor-label">Option D (English) *</label>
+              <ckeditor
+                [editor]="Editor"
+                [config]="editorConfig"
+                [formControl]="getOptionControl(i, 3, 'english')"
+                class="ckeditor-full-width">
+              </ckeditor>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hindi Section -->
+  <div class="language-section" [class.full-width]="!showEnglishSection(i)" *ngIf="showHindiSection(i)">
+    <div class="language-header">
+      <h5 class="language-title">
+        <mat-icon>language</mat-icon>
+        Hindi
+      </h5>
+      <button type="button" mat-icon-button color="warn" 
+              (click)="removeLanguageSection(i, 'hindi')" 
+              matTooltip="Remove Hindi section">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+    
+    <div class="ckeditor-field">
+      <label class="ckeditor-label">Question Text (Hindi)</label>
+      <ckeditor
+        [editor]="Editor"
+        [config]="editorConfig"
+        [formControl]="getQuestionControl(i, 'hindi')"
+        class="ckeditor-full-width">
+      </ckeditor>
+    </div>
+
+    <div class="ckeditor-field">
+      <label class="ckeditor-label">Question Description (Hindi - Optional)</label>
+      <ckeditor
+        [editor]="Editor"
+        [config]="editorConfig"
+        [formControl]="getDescriptionControl(i, 'hindi')"
+        class="ckeditor-full-width">
+      </ckeditor>
+    </div>
+
+    <!-- Hindi Options Section -->
+    <div class="options-section" *ngIf="showHindiSection(i)">
+      <h6 class="options-subtitle">Hindi Options</h6>
+      <div class="options-grid">
+        <div class="option-row">
+          <div class="option-pair">
+            <div class="ckeditor-field option-field">
+              <label class="ckeditor-label">Option A (Hindi)</label>
+              <ckeditor
+                [editor]="Editor"
+                [config]="editorConfig"
+                [formControl]="getOptionControl(i, 0, 'hindi')"
+                class="ckeditor-full-width">
+              </ckeditor>
+            </div>
+            <div class="ckeditor-field option-field">
+              <label class="ckeditor-label">Option B (Hindi)</label>
+              <ckeditor
+                [editor]="Editor"
+                [config]="editorConfig"
+                [formControl]="getOptionControl(i, 1, 'hindi')"
+                class="ckeditor-full-width">
+              </ckeditor>
+            </div>
+          </div>
+        </div>
+        <div class="option-row">
+          <div class="option-pair">
+            <div class="ckeditor-field option-field">
+              <label class="ckeditor-label">Option C (Hindi)</label>
+              <ckeditor
+                [editor]="Editor"
+                [config]="editorConfig"
+                [formControl]="getOptionControl(i, 2, 'hindi')"
+                class="ckeditor-full-width">
+              </ckeditor>
+            </div>
+            <div class="ckeditor-field option-field">
+              <label class="ckeditor-label">Option D (Hindi)</label>
+              <ckeditor
+                [editor]="Editor"
+                [config]="editorConfig"
+                [formControl]="getOptionControl(i, 3, 'hindi')"
+                class="ckeditor-full-width">
+              </ckeditor>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Language Button - Only show when one language is missing -->
+  <div class="add-language-section" *ngIf="!showEnglishSection(i) || !showHindiSection(i)">
+    <button type="button" mat-stroked-button color="primary" (click)="addLanguageSection(i)">
+      <mat-icon>add</mat-icon>
+      Add {{ !showEnglishSection(i) ? 'English' : 'Hindi' }} Language
+    </button>
+  </div>
+</div>
+
+            <!-- Correct Answer -->
+            <div class="question-settings">
+              <mat-form-field appearance="outline" class="setting-field">
+                <mat-label>Correct Answer</mat-label>
+                <mat-select [formControl]="getCorrectAnswerControl(i)" panelClass="question-correct-answer-panel">
+                  <mat-option *ngFor="let opt of [0,1,2,3]" [value]="opt">
+                    Option {{ getOptionLetter(opt) }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matSuffix>check_circle</mat-icon>
+                <mat-error *ngIf="getCorrectAnswerControl(i).hasError('required')">
+                  Correct answer is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Questions State -->
+        <div *ngIf="questions.length === 0" class="no-questions">
+          <mat-icon class="no-questions-icon">quiz</mat-icon>
+          <h4>No questions added yet</h4>
+          <p>Click "Add Question" to create questions manually.</p>
+          <!-- <div class="file-format-example">
+            <strong>File format example:</strong>
+            <pre><code>Q1E. When did India get independence? A. 1940 B. 1945 C. 1847 D. 1947 DESC. India gained independence from British rule on August 15, 1947. CANS. D
+Q1H. भारत को कब स्वतंत्रता मिली? A. 1940 B. 1945 C. 1847 D. 1947 DESC. भारत को 15 अगस्त, 1947 को ब्रिटिश शासन से स्वतंत्रता मिली।
+Q2E. Who was the first Prime Minister of India? A. Mahatma Gandhi B. Jawaharlal Nehru C. Sardar Patel D. Indira Gandhi DESC. Jawaharlal Nehru served as the first Prime Minister from 1947 to 1964. CANS. B
+Q2H. भारत के प्रथम प्रधानमंत्री कौन थे? A. महात्मा गांधी B. जवाहरलाल नेहरू C. सरदार पटेल D. इंदिरा गांधी DESC. जवाहरलाल नेहरू ने 1947 से 1964 तक भारत के प्रथम प्रधानमंत्री के रूप में कार्य किया।</code></pre>
+          </div> -->
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-button (click)="onCancel()" [disabled]="loading()" class="cancel-btn">
+      {{ 'Cancel' | t }}
+    </button>
+    <button mat-raised-button color="primary" (click)="onSubmit()"
+      [disabled]="!questionForm.valid || questions.length === 0 || loading()" class="submit-btn">
+      <mat-spinner diameter="20" *ngIf="loading()"></mat-spinner>
+      <span *ngIf="!loading()">
+        {{ isEdit() ? 'Update' : 'Save' }} Questions ({{ questions.length }} questions)
+      </span>
+    </button>
+  </mat-dialog-actions>
+</div>
+
+<!-- Add Tag Dialog Template -->
+<ng-template #addTagDialogTemplate>
+  <div class="add-tag-dialog">
+    <div class="dialog-header">
+      <h2 mat-dialog-title>Create New Tag</h2>
+      <button mat-icon-button (click)="closeAddTagDialog()" class="close-button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-dialog-content class="dialog-content">
+      <form [formGroup]="addTagForm" (ngSubmit)="onAddTagSubmit()" class="add-tag-form">
+        <div class="form-group">
+          <label for="category">Category *</label>
+          <input 
+            type="text" 
+            id="category"
+            formControlName="category" 
+            placeholder="Enter category (e.g., History, Science)"
+            class="form-control"
+            [class.error]="isAddTagFieldInvalid('category')">
+          <div *ngIf="isAddTagFieldInvalid('category')" class="error-message">
+            <span *ngIf="addTagForm.get('category')?.errors?.['required']">Category is required</span>
+            <span *ngIf="addTagForm.get('category')?.errors?.['minlength']">Category must be at least 2 characters long</span>
+            <span *ngIf="addTagForm.get('category')?.errors?.['maxlength']">Category cannot exceed 50 characters</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="subCategory">Sub-Category *</label>
+          <input 
+            type="text" 
+            id="subCategory"
+            formControlName="subCategory" 
+            placeholder="Enter sub-category (e.g., Ancient History, Physics)"
+            class="form-control"
+            [class.error]="isAddTagFieldInvalid('subCategory')">
+          <div *ngIf="isAddTagFieldInvalid('subCategory')" class="error-message">
+            <span *ngIf="addTagForm.get('subCategory')?.errors?.['required']">Sub-category is required</span>
+            <span *ngIf="addTagForm.get('subCategory')?.errors?.['minlength']">Sub-category must be at least 2 characters long</span>
+            <span *ngIf="addTagForm.get('subCategory')?.errors?.['maxlength']">Sub-category cannot exceed 50 characters</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="topic">Topic *</label>
+          <input 
+            type="text" 
+            id="topic"
+            formControlName="topic" 
+            placeholder="Enter topic (e.g., Gupta Empire, Newton's Laws)"
+            class="form-control"
+            [class.error]="isAddTagFieldInvalid('topic')">
+          <div *ngIf="isAddTagFieldInvalid('topic')" class="error-message">
+            <span *ngIf="addTagForm.get('topic')?.errors?.['required']">Topic is required</span>
+            <span *ngIf="addTagForm.get('topic')?.errors?.['minlength']">Topic must be at least 2 characters long</span>
+            <span *ngIf="addTagForm.get('topic')?.errors?.['maxlength']">Topic cannot exceed 50 characters</span>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="form-group" *ngIf="addTagForm.valid">
+          <label>Full Path Preview:</label>
+          <div class="path-preview">
+            {{ addTagForm.get('category')?.value | titlecase }} / 
+            {{ addTagForm.get('subCategory')?.value | titlecase }} / 
+            {{ addTagForm.get('topic')?.value | titlecase }}
+          </div>
+        </div>
+      </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="dialog-actions">
+      <button mat-button (click)="closeAddTagDialog()" [disabled]="addTagLoading()">
+        {{ 'Cancel' | t }}
+      </button>
+      <button mat-raised-button color="primary" (click)="onAddTagSubmit()" 
+              [disabled]="addTagLoading() || addTagForm.invalid">
+        <mat-spinner diameter="20" *ngIf="addTagLoading()"></mat-spinner>
+        <span *ngIf="!addTagLoading()">Create Tag</span>
+      </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>

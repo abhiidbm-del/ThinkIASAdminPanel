@@ -1,0 +1,421 @@
+<!-- questions-master.component.html -->
+<div class="questions-management">
+  <section class="import-panel">
+    <div class="import-heading">
+      <div class="import-title-wrap">
+        <div class="import-icon"><mat-icon>upload_file</mat-icon></div>
+        <div>
+          <h2>{{ 'Import Questions' | t }}</h2>
+          <p>{{ language.hindi ? 'English और Hindi DOCX फ़ाइलों से एक साथ प्रश्न जोड़ें' : 'Add bilingual questions from English and Hindi DOCX files' }}</p>
+        </div>
+      </div>
+      <div class="template-actions">
+        <a mat-stroked-button class="template-btn" href="/EnglishQuestionTemplate.docx" download="EnglishQuestionTemplate.docx">
+          <mat-icon>download</mat-icon>
+          English DOCX
+        </a>
+        <a mat-stroked-button class="template-btn" href="/HindiQuestionTemplate.docx" download="HindiQuestionTemplate.docx">
+          <mat-icon>download</mat-icon>
+          Hindi DOCX
+        </a>
+      </div>
+    </div>
+
+    <div class="import-guidance">
+      <div class="guidance-item"><mat-icon>description</mat-icon><span><strong>DOCX</strong><small>{{ language.hindi ? 'Word फ़ाइल फ़ॉर्मेट' : 'Word file format' }}</small></span></div>
+      <div class="guidance-item"><mat-icon>language</mat-icon><span><strong>English + Hindi</strong><small>{{ language.hindi ? 'दोनों भाषाएँ एक ही row में' : 'Both languages in one row' }}</small></span></div>
+      <div class="guidance-item"><mat-icon>check_circle</mat-icon><span><strong>1000 questions</strong><small>{{ language.hindi ? 'अधिकतम सीमा' : 'Maximum per import' }}</small></span></div>
+    </div>
+
+    <label class="import-dropzone" [class.has-file]="importFile" [class.disabled]="importing">
+      <input type="file" accept=".csv,.json,.docx" multiple [disabled]="importing" (change)="previewImport($event)">
+      <mat-icon>{{ importFiles.length ? 'task' : 'cloud_upload' }}</mat-icon>
+      <strong>{{ importFiles.length ? getImportFileNames() : (language.hindi ? 'English और Hindi DOCX चुनें' : 'Choose English and Hindi DOCX files') }}</strong>
+      <span>{{ importFiles.length > 1 ? (language.hindi ? 'समान क्रम के प्रश्न bilingual बनेंगे' : 'Matching question numbers will be merged bilingually') : (language.hindi ? 'अधिकतम दो फ़ाइलें, हर फ़ाइल 5 MB तक' : 'Up to two files, 5 MB each') }}</span>
+    </label>
+
+    <p role="alert" class="import-message error" *ngIf="importError">{{ importError }}</p>
+    <div class="import-message processing" *ngIf="importing"><mat-spinner diameter="20"></mat-spinner><span>{{ language.hindi ? 'फ़ाइल संसाधित हो रही है...' : 'Processing file...' }}</span></div>
+
+    <div class="import-preview" *ngIf="importPreview.length || duplicateQuestions.length">
+      <div class="preview-heading"><div><span class="preview-label">{{ language.hindi ? 'Preview ready' : 'Preview ready' }}</span><h3>{{ importPreview.length ? importPreview.length + (language.hindi ? ' प्रश्न आयात के लिए तैयार हैं' : ' questions ready to import') : (language.hindi ? 'कोई नया प्रश्न आयात के लिए नहीं है' : 'No new questions to import') }}</h3></div><mat-icon>fact_check</mat-icon></div>
+      <div class="duplicate-report" *ngIf="duplicateQuestions.length" role="status">
+        <div class="duplicate-report-heading">
+          <mat-icon>content_copy</mat-icon>
+          <strong>{{ language.hindi ? duplicateQuestions.length + ' दोहराए गए प्रश्न हटाए गए' : duplicateQuestions.length + ' repeated question(s) removed' }}</strong>
+        </div>
+        <p>{{ language.hindi ? 'ये प्रश्न final preview और import में शामिल नहीं होंगे:' : 'These repeated questions are excluded from the final preview and import:' }}</p>
+        <ul>
+          <li *ngFor="let duplicate of duplicateQuestions">
+            <ng-container *ngIf="duplicate.reason === 'already-added'; else repeatedInFile">
+              {{ language.hindi ? 'प्रश्न ' + duplicate.duplicateIndex + ' पहले से Question Bank में जोड़ा गया है:' : 'Question ' + duplicate.duplicateIndex + ' is already in the Question Bank:' }}
+            </ng-container>
+            <ng-template #repeatedInFile>
+              {{ language.hindi ? 'अपलोड का प्रश्न ' + duplicate.duplicateIndex + ', प्रश्न ' + duplicate.firstIndex + ' जैसा है:' : 'Uploaded question ' + duplicate.duplicateIndex + ' repeats question ' + duplicate.firstIndex + ':' }}
+            </ng-template>
+            <span>{{ duplicate.questionText }}</span>
+            <small *ngIf="duplicate.questionHindi">{{ duplicate.questionHindi }}</small>
+          </li>
+        </ul>
+      </div>
+      <p class="tag-selection-hint" *ngIf="importPreview.length">{{ language.hindi ? 'हर प्रश्न के लिए अलग tag चुनें। Tag खाली छोड़ने पर प्रश्न बिना tag के import होगा।' : 'Choose a tag for each question. Leave it blank to import that question without a tag.' }}</p>
+      <div class="question-tag-list" *ngIf="importPreview.length">
+        <article class="question-tag-row" *ngFor="let item of importPreview; let i = index">
+          <div class="question-tag-copy">
+            <span class="question-number">{{ i + 1 }}</span>
+            <div>
+              <p>{{ item.question.english }}</p>
+              <small *ngIf="item.question.hindi">{{ item.question.hindi }}</small>
+            </div>
+          </div>
+          <mat-form-field appearance="outline" class="question-tag-field">
+            <mat-label>{{ language.hindi ? 'वैकल्पिक tag' : 'Optional tag' }}</mat-label>
+            <mat-select [(ngModel)]="questionImportTags[i]" [ngModelOptions]="{ standalone: true }">
+              <mat-option value="">{{ language.hindi ? 'बिना tag' : 'No tag' }}</mat-option>
+              <mat-option *ngFor="let tag of tags()" [value]="tag._id">{{ tag.tag }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </article>
+      </div>
+      <button mat-raised-button color="primary" class="confirm-import-btn" *ngIf="importPreview.length" [disabled]="importing" (click)="confirmImport()"><mat-icon>file_upload</mat-icon>{{ 'Import Questions' | t }}</button>
+    </div>
+  </section>
+
+  <div class="questions-container">
+    <!-- Questions List Section -->
+    <div class="questions-section">
+      <div class="section-header">
+        <div class="header-content">
+          <h3>{{ 'Questions List' | t }}</h3>
+          <div class="questions-count">{{ totalQuestions() }} questions</div>
+        </div>
+        <div class="action-buttons">
+          <button class="btn btn-primary" (click)="openCreateQuestionDialog()">
+            <mat-icon>add</mat-icon>
+            {{ 'Add New Question' | t }}
+          </button>
+          <button class="btn btn-export" (click)="exportToCSV()" matTooltip="Export all questions to CSV">
+    <mat-icon>download</mat-icon>
+    {{ 'Export CSV' | t }}
+  </button>
+        </div>
+      </div>
+
+      <!-- Bulk Actions Panel -->
+      <div class="bulk-actions-panel" *ngIf="selectedQuestions().length > 0">
+        <div class="bulk-info">
+          <span class="selected-count">
+            <mat-icon>check_circle</mat-icon>
+            {{ selectedQuestions().length }} question{{ selectedQuestions().length > 1 ? 's' : '' }} selected
+          </span>
+        </div>
+        <div class="bulk-controls">
+          <div class="bulk-buttons">
+            <button mat-button (click)="clearSelection()" class="clear-btn">
+              <mat-icon>clear</mat-icon>
+              {{ 'Clear Selection' | t }}
+            </button>
+            <button mat-button color="primary" (click)="openBulkTagDialog()" class="tag-btn">
+              <mat-icon>local_offer</mat-icon>
+              {{ 'Assign Tags' | t }}
+            </button>
+            <button mat-button (click)="showSelectedUIDs()" class="uid-btn" matTooltip="Show selected question UIDs">
+              <mat-icon>list</mat-icon>
+              {{ 'Show UIDs' | t }}
+            </button>
+            <button mat-button color="accent" (click)="exportSelectedToCSV()" 
+          [disabled]="selectedQuestions().length === 0" class="export-btn">
+    <mat-icon>download</mat-icon>
+    {{ 'Export Selected' | t }}
+  </button>
+            <button mat-button color="warn" (click)="deleteSelectedQuestions()" class="delete-btn">
+              <mat-icon>delete</mat-icon>
+              {{ 'Delete Selected' | t }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected UIDs Panel -->
+      <div *ngIf="showUIDsPanel()" class="uids-panel">
+        <div class="uids-panel-header">
+          <h4>
+            <mat-icon>list_alt</mat-icon>
+            Selected Question UIDs ({{ selectedQuestions().length }})
+          </h4>
+          <div class="uids-actions">
+            <!-- <button mat-icon-button (click)="copySelectedUIDs()" matTooltip="Copy all UIDs to clipboard">
+              <mat-icon>content_copy</mat-icon>
+            </button> -->
+            <button mat-icon-button (click)="closeUIDsPanel()" matTooltip="Close panel">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+        <div class="uids-content">
+          <div class="uids-list">
+            <span *ngFor="let uid of getSelectedQuestionUIDs(); let last = last">
+              {{ uid }}<span *ngIf="!last">,</span>
+            </span>
+          </div>
+          <div *ngIf="getSelectedQuestionUIDs().length === 0" class="no-uids">
+            No valid UIDs found in selected questions
+          </div>
+        </div>
+        <div class="uids-footer">
+          <button mat-button (click)="copySelectedUIDs()" class="copy-all-btn">
+            <mat-icon>content_copy</mat-icon>
+            {{ 'Copy All UIDs' | t }}
+          </button>
+          <span class="total-uids">Total: {{ getSelectedQuestionUIDs().length }} UIDs</span>
+        </div>
+      </div>
+
+      <!-- Page Info -->
+      <div *ngIf="!loading() && questions().length > 0" class="page-info">
+        {{ getCurrentPageInfo() }}
+      </div>
+
+      <div *ngIf="loading()" class="loading">
+        <div class="spinner"></div>
+        <p>Loading questions...</p>
+      </div>
+
+      <div *ngIf="!loading() && questions().length === 0" class="empty-state">
+        <mat-icon>quiz</mat-icon>
+        <p>No questions available yet.</p>
+        <button mat-raised-button color="primary" (click)="openCreateQuestionDialog()">
+          <mat-icon>add</mat-icon>
+          Add First Question
+        </button>
+      </div>
+
+      <div *ngIf="!loading() && questions().length > 0" class="questions-table-container">
+        <div class="questions-table">
+          <table>
+            <thead>
+              <tr>
+                <th width="50">
+                  <mat-checkbox [checked]="allSelected()" 
+                                (change)="toggleSelectAll($event.checked)"
+                                [indeterminate]="someSelected()">
+                  </mat-checkbox>
+                </th>
+                <th>S.No.</th>
+                <th>UID</th>
+                <th>Questions EN-HI</th>
+                <th>Tags</th>
+                <th>{{ 'Actions' | t }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let question of questions(); let i = index" 
+                  [class.selected]="isSelected(question)">
+                <td>
+                  <mat-checkbox [checked]="isSelected(question)" 
+                                (change)="toggleQuestionSelection(question, $event.checked)">
+                  </mat-checkbox>
+                </td>
+                <td class="serial-number">
+                  {{ (currentPage() * pageSize()) + i + 1 }}
+                </td>
+                <td>
+                  <span class="question-id">{{ getQuestionId(question) }}</span>
+                </td>
+                <td>
+                  <div class="question-preview">
+                    <div class="question-en" [innerHTML]="question.question.english | truncate:60"></div>
+                    <div *ngIf="question.question.hindi" class="question-hi"
+                      [innerHTML]="question.question.hindi | truncate:60"></div>
+                  </div>
+                </td>
+                <td>
+                  <div class="tags-display">
+                    <span class="tag-badge" *ngFor="let tagId of question.tags">
+                      {{ getTagName(tagId) }}
+                    </span>
+                    <span *ngIf="question.tags.length === 0" class="no-tags">No tags</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="actions">
+                    <button class="btn-view" (click)="openViewDialog(question)" matTooltip="View Details">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <button class="btn-edit" (click)="editQuestion(question)" matTooltip="Edit Question">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button class="btn-delete" (click)="deleteQuestion(question)" matTooltip="Delete Question">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <mat-paginator [length]="totalQuestions()" [pageSize]="pageSize()" [pageIndex]="currentPage()"
+          [pageSizeOptions]="[5, 10, 20, 50]" (page)="onPageChange($event)" aria-label="Select page of questions">
+        </mat-paginator>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Tag Assignment Dialog -->
+<ng-template #bulkTagDialogTemplate>
+  <div class="bulk-tag-dialog">
+    <div class="dialog-header">
+      <h2 mat-dialog-title>Assign Tags to Multiple Questions</h2>
+      <button mat-icon-button (click)="closeBulkTagDialog()" class="close-button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-dialog-content class="dialog-content">
+      <div class="bulk-tag-content">
+        <div class="selection-info">
+          <mat-icon>check_circle</mat-icon>
+          <span>You have selected <strong>{{ selectedQuestions().length }}</strong> question{{ selectedQuestions().length > 1 ? 's' : '' }}</span>
+        </div>
+
+        <div class="tag-selection-section">
+          <h3>Select Tags</h3>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Tags</mat-label>
+            <mat-select [(ngModel)]="selectedTags" multiple>
+              <mat-option *ngFor="let tag of tags()" [value]="tag._id">
+                {{ tag.tag }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>local_offer</mat-icon>
+          </mat-form-field>
+
+          <div class="selected-tags-preview" *ngIf="selectedTags.length > 0">
+            <h4>Selected Tags:</h4>
+            <div class="tags-container">
+              <mat-chip *ngFor="let tagId of selectedTags" [removable]="true" (removed)="removeTagFromSelection(tagId)">
+                {{ getTagName(tagId) }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            </div>
+          </div>
+
+          <div class="action-options">
+            <mat-checkbox [(ngModel)]="replaceExistingTags">
+              Replace existing tags
+            </mat-checkbox>
+            <p class="option-help">If checked, existing tags will be replaced. If unchecked, tags will be added.</p>
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="dialog-actions">
+      <button mat-button (click)="closeBulkTagDialog()" [disabled]="bulkTagLoading()">
+        {{ 'Cancel' | t }}
+      </button>
+      <button mat-raised-button color="primary" (click)="applyBulkTags()" 
+              [disabled]="selectedTags.length === 0 || bulkTagLoading()">
+        <mat-spinner diameter="20" *ngIf="bulkTagLoading()"></mat-spinner>
+        <span *ngIf="!bulkTagLoading()">
+          Apply Tags to {{ selectedQuestions().length }} Question{{ selectedQuestions().length > 1 ? 's' : '' }}
+        </span>
+      </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>
+
+<!-- View Question Dialog Template -->
+<ng-template #viewDialogTemplate>
+  <div class="view-question-dialog">
+    <div class="dialog-header">
+      <h2 mat-dialog-title>Question Details</h2>
+      <button mat-icon-button (click)="closeViewDialog()" class="close-button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-dialog-content class="dialog-content">
+      <div *ngIf="selectedQuestion" class="question-details">
+        <div class="detail-row">
+          <label>UID:</label>
+          <span class="question-id-badge">{{ selectedQuestion.uid || selectedQuestion._id || 'N/A' }}</span>
+        </div>
+
+        <!-- Question Text -->
+        <div class="detail-section">
+          <h3><mat-icon>question_answer</mat-icon> Question Text</h3>
+
+          <div class="detail-row">
+            <label><mat-icon>language</mat-icon> English:</label>
+            <div class="question-text rich-text" [innerHTML]="selectedQuestion.question.english | safeHtml"></div>
+          </div>
+
+          <div *ngIf="selectedQuestion.question.hindi" class="detail-row">
+            <label><mat-icon>language</mat-icon> Hindi:</label>
+            <div class="question-text rich-text" [innerHTML]="selectedQuestion.question.hindi | safeHtml"></div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div *ngIf="selectedQuestion.description?.english || selectedQuestion.description?.hindi"
+          class="detail-section">
+          <h3><mat-icon>description</mat-icon> Description</h3>
+
+          <div *ngIf="selectedQuestion.description?.english" class="detail-row">
+            <label><mat-icon>language</mat-icon> English:</label>
+            <div class="description-text rich-text" [innerHTML]="selectedQuestion.description.english | safeHtml"></div>
+          </div>
+
+          <div *ngIf="selectedQuestion.description?.hindi" class="detail-row">
+            <label><mat-icon>language</mat-icon> Hindi:</label>
+            <div class="description-text rich-text" [innerHTML]="selectedQuestion.description.hindi | safeHtml"></div>
+          </div>
+        </div>
+
+        <!-- Options -->
+        <div class="detail-section">
+          <h3><mat-icon>format_list_bulleted</mat-icon> Options</h3>
+          <div class="options-container">
+            <div *ngFor="let option of selectedQuestion.options; let i = index" class="option-detail"
+              [class.correct]="i === selectedQuestion.correctAnswer">
+
+              <span class="option-letter">{{ getOptionLetter(i) }}</span>
+
+              <div class="option-content">
+                <div class="option-en rich-text" [innerHTML]="option.english | safeHtml"></div>
+                <div *ngIf="option.hindi" class="option-hi rich-text" [innerHTML]="option.hindi | safeHtml"></div>
+              </div>
+
+              <span *ngIf="i === selectedQuestion.correctAnswer" class="correct-badge">
+                <mat-icon>check_circle</mat-icon> Correct Answer
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div *ngIf="selectedQuestion.tags?.length" class="detail-section">
+          <h3><mat-icon>local_offer</mat-icon> Tags</h3>
+          <div class="tags-container">
+            <mat-chip *ngFor="let tagId of selectedQuestion.tags" class="question-tag" selected="true">
+              {{ getTagName(tagId) }}
+            </mat-chip>
+          </div>
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="dialog-actions">
+      <button mat-raised-button color="primary" class="edit-btn" (click)="editQuestion(selectedQuestion!)">
+        <mat-icon>edit</mat-icon> Edit Question
+      </button>
+      <button mat-button (click)="closeViewDialog()" class="close-btn">
+        <mat-icon>close</mat-icon> {{ 'Close' | t }}
+      </button>
+    </mat-dialog-actions>
+  </div>
+</ng-template>

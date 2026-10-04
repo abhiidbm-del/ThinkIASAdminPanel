@@ -1,0 +1,32 @@
+<main class="profile-page">
+  <a routerLink="/students-list" class="back-link"><span>←</span>{{ 'Back to students' | t }}</a>
+  <p role="alert" class="error-message" *ngIf="error">{{ error }}</p>
+
+  <section class="profile-hero" *ngIf="student">
+    <div class="identity">
+      <div class="avatar">{{ student.fullName?.charAt(0) | uppercase }}</div>
+      <div><span class="eyebrow">STUDENT PROFILE</span><h1>{{ student.fullName }}</h1><p>{{ student.email }}</p></div>
+    </div>
+    <div class="hero-actions"><span class="status-badge" [class.inactive]="student.isActive === false"><span class="status-dot"></span>{{ (student.isActive === false ? 'Inactive' : 'Active') | t }}</span><button class="status-button" [class.activate]="student.isActive === false" [disabled]="saving" (click)="toggleStatus()">{{ (student.isActive === false ? 'Activate account' : 'Deactivate account') | t }}</button></div>
+  </section>
+
+  <section class="summary-grid" *ngIf="student">
+    <div class="summary-tile"><span class="tile-icon">▣</span><div><small>{{ 'Current Plan' | t }}</small><strong>{{ student.type | uppercase }}</strong></div></div>
+    <div class="summary-tile"><span class="tile-icon">✓</span><div><small>{{ 'Account status' | t }}</small><strong>{{ (student.isActive === false ? 'Inactive' : 'Active') | t }}</strong></div></div>
+    <div class="summary-tile"><span class="tile-icon">◷</span><div><small>{{ 'Joined date' | t }}</small><strong>{{ student.createdAt | date:'mediumDate' }}</strong></div></div>
+  </section>
+
+  <section class="details-card" *ngIf="student">
+    <div class="section-title"><div><span class="eyebrow">ACCOUNT INFORMATION</span><h2>{{ 'Student details' | t }}</h2></div></div>
+    <div class="details-grid">
+      <div class="detail-item"><span class="detail-label">{{ 'Full name' | t }}</span><strong>{{ student.fullName }}</strong></div>
+      <div class="detail-item"><span class="detail-label">{{ 'Email' | t }}</span><strong>{{ student.email }}</strong></div>
+      <div class="detail-item"><span class="detail-label">{{ 'Phone' | t }}</span><strong>{{ student.phone || 'Not provided' }}</strong></div>
+      <div class="detail-item"><span class="detail-label">{{ 'Plan activated' | t }}</span><strong>{{ student.planActivatedAt ? (student.planActivatedAt | date:'medium') : ('Not activated' | t) }}</strong></div>
+      <div class="detail-item"><span class="detail-label">{{ 'Joined' | t }}</span><strong>{{ student.createdAt | date:'medium' }}</strong></div>
+      <div class="detail-item"><span class="detail-label">{{ 'Plan expiry' | t }}</span><strong>{{ student.planExpiryAt ? (student.planExpiryAt | date:'medium') : ('Not available' | t) }}</strong></div>
+    </div>
+  </section>
+
+  <div class="profile-loading" *ngIf="!student && !error"><span></span><p>{{ 'Loading student profile...' | t }}</p></div>
+</main>

@@ -1,0 +1,926 @@
+<div class="syllabus-master">
+    <!-- Message Display -->
+    <div *ngIf="message" class="message" [class]="messageType">
+        {{ message }}
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Main Tab Navigation -->
+    <div class="tab-navigation">
+        <button class="tab-button" [class.active]="activeTab === 'upsc-syllabus'" (click)="switchTab('upsc-syllabus')">
+            Syllabus given by UPSC
+        </button>
+        <button class="tab-button" [class.active]="activeTab === 'topicwise'" (click)="switchTab('topicwise')">
+            Topicwise Detail Explanation
+        </button>
+        <button class="tab-button" [class.active]="activeTab === 'videos'" (click)="switchTab('videos')">
+            Video Lectures
+        </button>
+    </div>
+
+    <!-- UPSC SYLLABUS TAB -->
+    <div *ngIf="activeTab === 'upsc-syllabus'" class="tab-content">
+        <!-- Sub-tabs for Prelims and Mains -->
+        <div class="syllabus-subtabs">
+            <button class="subtab-button" [class.active]="syllabusSubTab === 'prelims'"
+                (click)="switchSyllabusSubTab('prelims')">
+                Prelims Examination Syllabus
+            </button>
+            <button class="subtab-button" [class.active]="syllabusSubTab === 'mains'"
+                (click)="switchSyllabusSubTab('mains')">
+                Mains Examination Syllabus
+            </button>
+        </div>
+
+        <!-- Prelims Subtab -->
+        <div *ngIf="syllabusSubTab === 'prelims'" class="syllabus-subtab-content">
+            <div class="syllabus-display-section" *ngIf="!isEditingPrelims">
+                <!-- Display existing Prelims syllabus -->
+                <div *ngIf="hasPrelimsData" class="existing-syllabus">
+                    <div class="syllabus-header">
+                        <h3>Current Prelims Syllabus</h3>
+                        <button class="btn btn-edit" (click)="enablePrelimsEdit()">
+                            <i class="fa fa-edit"></i> Edit Syllabus
+                        </button>
+                    </div>
+
+                    <div class="syllabus-papers">
+                        <!-- GS1 Paper -->
+                        <div class="paper-display" *ngIf="prelimsData.gs1">
+                            <h4>Paper-1 (GS-1)</h4>
+                            <div class="paper-content">
+                                <div class="language-version" *ngIf="prelimsData.gs1.fileNameEnglish">
+                                    <h5>English Version</h5>
+                                    <p><strong>File:</strong> {{ prelimsData.gs1.fileNameEnglish }}</p>
+                                    <p><strong>Link:</strong>
+                                        <a [href]="prelimsData.gs1.fileLinkEnglish" target="_blank" class="file-link">
+                                            {{ prelimsData.gs1.fileLinkEnglish }}
+                                        </a>
+                                    </p>
+                                    <p *ngIf="prelimsData.gs1.descriptionEnglish">
+                                        <strong>Description:</strong> {{ prelimsData.gs1.descriptionEnglish }}
+                                    </p>
+                                </div>
+
+                                <div class="language-version" *ngIf="prelimsData.gs1.fileNameHindi">
+                                    <h5>Hindi Version</h5>
+                                    <p><strong>File:</strong> {{ prelimsData.gs1.fileNameHindi }}</p>
+                                    <p><strong>Link:</strong>
+                                        <a [href]="prelimsData.gs1.fileLinkHindi" target="_blank" class="file-link">
+                                            {{ prelimsData.gs1.fileLinkHindi }}
+                                        </a>
+                                    </p>
+                                    <p *ngIf="prelimsData.gs1.descriptionHindi">
+                                        <strong>Description:</strong> {{ prelimsData.gs1.descriptionHindi }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GS2 Paper -->
+                        <div class="paper-display" *ngIf="prelimsData.gs2">
+                            <h4>Paper-2 (CSAT)</h4>
+                            <div class="paper-content">
+                                <div class="language-version" *ngIf="prelimsData.gs2.fileNameEnglish">
+                                    <h5>English Version</h5>
+                                    <p><strong>File:</strong> {{ prelimsData.gs2.fileNameEnglish }}</p>
+                                    <p><strong>Link:</strong>
+                                        <a [href]="prelimsData.gs2.fileLinkEnglish" target="_blank" class="file-link">
+                                            {{ prelimsData.gs2.fileLinkEnglish }}
+                                        </a>
+                                    </p>
+                                    <p *ngIf="prelimsData.gs2.descriptionEnglish">
+                                        <strong>Description:</strong> {{ prelimsData.gs2.descriptionEnglish }}
+                                    </p>
+                                </div>
+
+                                <div class="language-version" *ngIf="prelimsData.gs2.fileNameHindi">
+                                    <h5>Hindi Version</h5>
+                                    <p><strong>File:</strong> {{ prelimsData.gs2.fileNameHindi }}</p>
+                                    <p><strong>Link:</strong>
+                                        <a [href]="prelimsData.gs2.fileLinkHindi" target="_blank" class="file-link">
+                                            {{ prelimsData.gs2.fileLinkHindi }}
+                                        </a>
+                                    </p>
+                                    <p *ngIf="prelimsData.gs2.descriptionHindi">
+                                        <strong>Description:</strong> {{ prelimsData.gs2.descriptionHindi }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No data message -->
+                <div *ngIf="!hasPrelimsData" class="no-data-message">
+                    <div class="no-data-content">
+                        <i class="fa fa-folder-open"></i>
+                        <h4>No Syllabus Available</h4>
+                        <p>No Prelims syllabus has been added yet.</p>
+                        <button class="btn btn-primary" (click)="enablePrelimsEdit()">
+                            <i class="fa fa-plus"></i> Add Syllabus
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Form (hidden by default) -->
+            <div *ngIf="isEditingPrelims" class="syllabus-edit-section">
+                <div class="edit-header">
+                    <h3>{{ hasPrelimsData ? 'Edit' : 'Add' }} Prelims Syllabus</h3>
+                    <button type="button" class="btn btn-secondary" (click)="cancelPrelimsEdit()">
+                        Cancel
+                    </button>
+                </div>
+
+                <form [formGroup]="prelimsForm" class="syllabus-form">
+                    <div class="form-sections">
+                        <!-- GS1 Section -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <h3>Paper-1 (GS-1)</h3>
+                                <span class="section-badge">Paper 1</span>
+                                <div *ngIf="hasLanguageError(prelimsGs1Form)" class="language-error">
+                                    {{ getLanguageErrorMessage(prelimsGs1Form) }}
+                                </div>
+                            </div>
+
+                            <div formGroupName="gs1" class="section-content">
+                                <!-- English Section -->
+                                <div class="language-section">
+                                    <h4>English Version</h4>
+                                    <div class="form-group">
+                                        <label for="prelimsGs1FileNameEnglish">File Name (English)</label>
+                                        <input type="text" id="prelimsGs1FileNameEnglish"
+                                            formControlName="fileNameEnglish"
+                                            placeholder="e.g., GS1 Syllabus PDF 2024 (English)" class="form-control">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="prelimsGs1FileLinkEnglish">File Link (English)</label>
+                                        <input type="url" id="prelimsGs1FileLinkEnglish"
+                                            formControlName="fileLinkEnglish" placeholder="https://drive.google.com/..."
+                                            class="form-control">
+                                        <div *ngIf="prelimsGs1Form.get('fileLinkEnglish')?.errors?.['pattern']"
+                                            class="error-message">
+                                            Valid URL required
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="prelimsGs1DescriptionEnglish">Description (English)</label>
+                                        <textarea id="prelimsGs1DescriptionEnglish" formControlName="descriptionEnglish"
+                                            placeholder="e.g., General Studies Paper 1 - Complete Syllabus (English)"
+                                            rows="2" class="form-control">
+                                        </textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Hindi Section -->
+                                <div class="language-section">
+                                    <h4>Hindi Version</h4>
+                                    <div class="form-group">
+                                        <label for="prelimsGs1FileNameHindi">File Name (Hindi)</label>
+                                        <input type="text" id="prelimsGs1FileNameHindi" formControlName="fileNameHindi"
+                                            placeholder="e.g., GS1 Syllabus PDF 2024 (Hindi)" class="form-control">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="prelimsGs1FileLinkHindi">File Link (Hindi)</label>
+                                        <input type="url" id="prelimsGs1FileLinkHindi" formControlName="fileLinkHindi"
+                                            placeholder="https://drive.google.com/..." class="form-control">
+                                        <div *ngIf="prelimsGs1Form.get('fileLinkHindi')?.errors?.['pattern']"
+                                            class="error-message">
+                                            Valid URL required
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="prelimsGs1DescriptionHindi">Description (Hindi)</label>
+                                        <textarea id="prelimsGs1DescriptionHindi" formControlName="descriptionHindi"
+                                            placeholder="e.g., General Studies Paper 1 - Complete Syllabus (Hindi)"
+                                            rows="2" class="form-control">
+                                        </textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Language Requirement Note -->
+                                <div class="language-note">
+                                    <small><i class="fa fa-info-circle"></i> At least one language (English or Hindi)
+                                        must be provided. If you provide a file name, the corresponding file link is
+                                        required.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GS2 Section -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <h3>Paper-2 (CSAT)</h3>
+                                <span class="section-badge">Paper 2</span>
+                                <div *ngIf="hasLanguageError(prelimsGs2Form)" class="language-error">
+                                    {{ getLanguageErrorMessage(prelimsGs2Form) }}
+                                </div>
+                            </div>
+
+                            <div formGroupName="gs2" class="section-content">
+                                <div class="language-section">
+                                    <h4>English Version</h4>
+                                    <div class="form-group">
+                                        <label for="prelimsGs2FileNameEnglish">File Name (English)</label>
+                                        <input type="text" id="prelimsGs2FileNameEnglish"
+                                            formControlName="fileNameEnglish"
+                                            placeholder="e.g., GS2 Syllabus PDF 2024 (English)" class="form-control">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="prelimsGs2FileLinkEnglish">File Link (English)</label>
+                                        <input type="url" id="prelimsGs2FileLinkEnglish"
+                                            formControlName="fileLinkEnglish" placeholder="https://drive.google.com/..."
+                                            class="form-control">
+                                        <div *ngIf="prelimsGs2Form.get('fileLinkEnglish')?.errors?.['pattern']"
+                                            class="error-message">
+                                            Valid URL required
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="prelimsGs2DescriptionEnglish">Description (English)</label>
+                                        <textarea id="prelimsGs2DescriptionEnglish" formControlName="descriptionEnglish"
+                                            placeholder="e.g., General Studies Paper 2 - Complete Syllabus (English)"
+                                            rows="2" class="form-control">
+                                        </textarea>
+                                    </div>
+                                </div>
+
+                                <div class="language-section">
+                                    <h4>Hindi Version</h4>
+                                    <div class="form-group">
+                                        <label for="prelimsGs2FileNameHindi">File Name (Hindi)</label>
+                                        <input type="text" id="prelimsGs2FileNameHindi" formControlName="fileNameHindi"
+                                            placeholder="e.g., GS2 Syllabus PDF 2024 (Hindi)" class="form-control">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="prelimsGs2FileLinkHindi">File Link (Hindi)</label>
+                                        <input type="url" id="prelimsGs2FileLinkHindi" formControlName="fileLinkHindi"
+                                            placeholder="https://drive.google.com/..." class="form-control">
+                                        <div *ngIf="prelimsGs2Form.get('fileLinkHindi')?.errors?.['pattern']"
+                                            class="error-message">
+                                            Valid URL required
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="prelimsGs2DescriptionHindi">Description (Hindi)</label>
+                                        <textarea id="prelimsGs2DescriptionHindi" formControlName="descriptionHindi"
+                                            placeholder="e.g., General Studies Paper 2 - Complete Syllabus (Hindi)"
+                                            rows="2" class="form-control">
+                                        </textarea>
+                                    </div>
+                                </div>
+
+                                <div class="language-note">
+                                    <small><i class="fa fa-info-circle"></i> At least one language (English or Hindi)
+                                        must be provided. If you provide a file name, the corresponding file link is
+                                        required.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline-danger" (click)="clearForm()"
+                            [disabled]="isLoading">
+                            Clear All
+                        </button>
+                        <button type="submit" class="btn btn-primary" (click)="onSubmitPrelims()">
+                            <span *ngIf="!isLoading">{{ hasPrelimsData ? 'Update' : 'Save' }} Prelims Syllabus</span>
+                            <span *ngIf="isLoading">Saving...</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary" (click)="cancelPrelimsEdit()"
+                            [disabled]="isLoading">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Mains Subtab -->
+        <div *ngIf="syllabusSubTab === 'mains'" class="syllabus-subtab-content">
+            <div class="syllabus-display-section" *ngIf="!isEditingMains">
+                <!-- Display existing Mains syllabus -->
+                <div *ngIf="hasMainsData" class="existing-syllabus">
+                    <div class="syllabus-header">
+                        <h3>Current Mains Syllabus</h3>
+                        <button class="btn btn-edit" (click)="enableMainsEdit()">
+                            <i class="fa fa-edit"></i> Edit Syllabus
+                        </button>
+                    </div>
+
+                    <div class="syllabus-papers">
+                        <!-- Display all GS Papers -->
+                        <div class="paper-display" *ngFor="let paper of [1,2,3,4]">
+                            <h4>GS{{paper}} - General Studies Paper {{paper}}</h4>
+                            <div class="paper-content" *ngIf="mainsData['gs' + paper]">
+                                <div class="language-version" *ngIf="mainsData['gs' + paper].fileNameEnglish">
+                                    <h5>English Version</h5>
+                                    <p><strong>File:</strong> {{ mainsData['gs' + paper].fileNameEnglish }}</p>
+                                    <p><strong>Link:</strong>
+                                        <a [href]="mainsData['gs' + paper].fileLinkEnglish" target="_blank"
+                                            class="file-link">
+                                            {{ mainsData['gs' + paper].fileLinkEnglish }}
+                                        </a>
+                                    </p>
+                                    <p *ngIf="mainsData['gs' + paper].descriptionEnglish">
+                                        <strong>Description:</strong> {{ mainsData['gs' + paper].descriptionEnglish }}
+                                    </p>
+                                </div>
+
+                                <div class="language-version" *ngIf="mainsData['gs' + paper].fileNameHindi">
+                                    <h5>Hindi Version</h5>
+                                    <p><strong>File:</strong> {{ mainsData['gs' + paper].fileNameHindi }}</p>
+                                    <p><strong>Link:</strong>
+                                        <a [href]="mainsData['gs' + paper].fileLinkHindi" target="_blank"
+                                            class="file-link">
+                                            {{ mainsData['gs' + paper].fileLinkHindi }}
+                                        </a>
+                                    </p>
+                                    <p *ngIf="mainsData['gs' + paper].descriptionHindi">
+                                        <strong>Description:</strong> {{ mainsData['gs' + paper].descriptionHindi }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Essay Paper -->
+                        <div class="paper-display" *ngIf="mainsData.essay">
+                            <h4>Essay Paper</h4>
+                            <div class="paper-content">
+                                <div class="language-version" *ngIf="mainsData.essay.fileNameEnglish">
+                                    <h5>English Version</h5>
+                                    <p><strong>File:</strong> {{ mainsData.essay.fileNameEnglish }}</p>
+                                    <p><strong>Link:</strong>
+                                        <a [href]="mainsData.essay.fileLinkEnglish" target="_blank" class="file-link">
+                                            {{ mainsData.essay.fileLinkEnglish }}
+                                        </a>
+                                    </p>
+                                    <p *ngIf="mainsData.essay.descriptionEnglish">
+                                        <strong>Description:</strong> {{ mainsData.essay.descriptionEnglish }}
+                                    </p>
+                                </div>
+
+                                <div class="language-version" *ngIf="mainsData.essay.fileNameHindi">
+                                    <h5>Hindi Version</h5>
+                                    <p><strong>File:</strong> {{ mainsData.essay.fileNameHindi }}</p>
+                                    <p><strong>Link:</strong>
+                                        <a [href]="mainsData.essay.fileLinkHindi" target="_blank" class="file-link">
+                                            {{ mainsData.essay.fileLinkHindi }}
+                                        </a>
+                                    </p>
+                                    <p *ngIf="mainsData.essay.descriptionHindi">
+                                        <strong>Description:</strong> {{ mainsData.essay.descriptionHindi }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Optional Subjects -->
+                        <div class="paper-display optional-display"
+                            *ngIf="mainsData.optionalSubjects && mainsData.optionalSubjects.length > 0">
+                            <h4>Optional Subjects</h4>
+                            <div class="paper-content">
+                                <div class="optional-subjects-list">
+                                    <div class="optional-subject" *ngFor="let subject of mainsData.optionalSubjects">
+                                        <h5>{{ subject.subjectName }}</h5>
+                                        <div class="subject-documents">
+                                            <div class="document-item" *ngFor="let doc of subject.documents">
+                                                <div class="language-version" *ngIf="doc.fileNameEnglish">
+                                                    <h6>English Version</h6>
+                                                    <p><strong>Document:</strong> {{ doc.fileNameEnglish }}</p>
+                                                    <p><strong>Link:</strong>
+                                                        <a [href]="doc.fileLinkEnglish" target="_blank"
+                                                            class="file-link">
+                                                            {{ doc.fileLinkEnglish }}
+                                                        </a>
+                                                    </p>
+                                                    <p *ngIf="doc.descriptionEnglish">
+                                                        <strong>Description:</strong> {{ doc.descriptionEnglish }}
+                                                    </p>
+                                                </div>
+
+                                                <div class="language-version" *ngIf="doc.fileNameHindi">
+                                                    <h6>Hindi Version</h6>
+                                                    <p><strong>Document:</strong> {{ doc.fileNameHindi }}</p>
+                                                    <p><strong>Link:</strong>
+                                                        <a [href]="doc.fileLinkHindi" target="_blank" class="file-link">
+                                                            {{ doc.fileLinkHindi }}
+                                                        </a>
+                                                    </p>
+                                                    <p *ngIf="doc.descriptionHindi">
+                                                        <strong>Description:</strong> {{ doc.descriptionHindi }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No data message -->
+                <div *ngIf="!hasMainsData" class="no-data-message">
+                    <div class="no-data-content">
+                        <i class="fa fa-folder-open"></i>
+                        <h4>No Syllabus Available</h4>
+                        <p>No Mains syllabus has been added yet.</p>
+                        <button class="btn btn-primary" (click)="enableMainsEdit()">
+                            <i class="fa fa-plus"></i> Add Syllabus
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Form (hidden by default) -->
+            <div *ngIf="isEditingMains" class="syllabus-edit-section">
+                <div class="edit-header">
+                    <h3>{{ hasMainsData ? 'Edit' : 'Add' }} Mains Syllabus</h3>
+                    <button type="button" class="btn btn-secondary" (click)="cancelMainsEdit()">
+                        Cancel
+                    </button>
+                </div>
+
+                <form [formGroup]="mainsForm" (ngSubmit)="onSubmitMains()" class="syllabus-form">
+                    <div class="form-sections mains-sections">
+                        <!-- GS Papers -->
+                        <div class="form-section" *ngFor="let paper of [1,2,3,4]; let i = index">
+                            <div class="section-header">
+                                <h3>GS{{paper}} - General Studies Paper {{paper}}</h3>
+                                <span class="section-badge">Paper {{paper}}</span>
+                                <div *ngIf="hasLanguageError(getMainsFormGroup('gs' + paper))" class="language-error">
+                                    {{ getLanguageErrorMessage(getMainsFormGroup('gs' + paper)) }}
+                                </div>
+                            </div>
+
+                            <div [formGroupName]="'gs' + paper" class="section-content">
+                                <div class="language-section">
+                                    <h4>English Version</h4>
+                                    <div class="form-group">
+                                        <label [for]="'mainsGs' + paper + 'FileNameEnglish'">File Name (English)</label>
+                                        <input type="text" [id]="'mainsGs' + paper + 'FileNameEnglish'"
+                                            formControlName="fileNameEnglish"
+                                            [placeholder]="'e.g., GS' + paper + ' Syllabus PDF 2024 (English)'"
+                                            class="form-control">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label [for]="'mainsGs' + paper + 'FileLinkEnglish'">File Link (English)</label>
+                                        <input type="url" [id]="'mainsGs' + paper + 'FileLinkEnglish'"
+                                            formControlName="fileLinkEnglish" placeholder="https://drive.google.com/..."
+                                            class="form-control">
+                                        <div *ngIf="getMainsControl('gs' + paper, 'fileLinkEnglish')?.errors?.['pattern']"
+                                            class="error-message">
+                                            Valid URL required
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label [for]="'mainsGs' + paper + 'DescriptionEnglish'">Description
+                                            (English)</label>
+                                        <textarea [id]="'mainsGs' + paper + 'DescriptionEnglish'"
+                                            formControlName="descriptionEnglish"
+                                            [placeholder]="'e.g., General Studies Paper ' + paper + ' - Complete Syllabus (English)'"
+                                            rows="2" class="form-control">
+                                        </textarea>
+                                    </div>
+                                </div>
+
+                                <div class="language-section">
+                                    <h4>Hindi Version</h4>
+                                    <div class="form-group">
+                                        <label [for]="'mainsGs' + paper + 'FileNameHindi'">File Name (Hindi)</label>
+                                        <input type="text" [id]="'mainsGs' + paper + 'FileNameHindi'"
+                                            formControlName="fileNameHindi"
+                                            [placeholder]="'e.g., GS' + paper + ' Syllabus PDF 2024 (Hindi)'"
+                                            class="form-control">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label [for]="'mainsGs' + paper + 'FileLinkHindi'">File Link (Hindi)</label>
+                                        <input type="url" [id]="'mainsGs' + paper + 'FileLinkHindi'"
+                                            formControlName="fileLinkHindi" placeholder="https://drive.google.com/..."
+                                            class="form-control">
+                                        <div *ngIf="getMainsControl('gs' + paper, 'fileLinkHindi')?.errors?.['pattern']"
+                                            class="error-message">
+                                            Valid URL required
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label [for]="'mainsGs' + paper + 'DescriptionHindi'">Description
+                                            (Hindi)</label>
+                                        <textarea [id]="'mainsGs' + paper + 'DescriptionHindi'"
+                                            formControlName="descriptionHindi"
+                                            [placeholder]="'e.g., General Studies Paper ' + paper + ' - Complete Syllabus (Hindi)'"
+                                            rows="2" class="form-control">
+                                        </textarea>
+                                    </div>
+                                </div>
+
+                                <div class="language-note">
+                                    <small><i class="fa fa-info-circle"></i> At least one language (English or Hindi)
+                                        must be provided. If you provide a file name, the corresponding file link is
+                                        required.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Essay -->
+                        <div class="form-section">
+                            <div class="section-header">
+                                <h3>Essay Paper</h3>
+                                <span class="section-badge">Essay</span>
+                                <div *ngIf="hasLanguageError(mainsEssayForm)" class="language-error">
+                                    {{ getLanguageErrorMessage(mainsEssayForm) }}
+                                </div>
+                            </div>
+
+                            <div formGroupName="essay" class="section-content">
+                                <div class="language-section">
+                                    <h4>English Version</h4>
+                                    <div class="form-group">
+                                        <label for="mainsEssayFileNameEnglish">File Name (English)</label>
+                                        <input type="text" id="mainsEssayFileNameEnglish"
+                                            formControlName="fileNameEnglish"
+                                            placeholder="e.g., Essay Syllabus PDF 2024 (English)" class="form-control">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="mainsEssayFileLinkEnglish">File Link (English)</label>
+                                        <input type="url" id="mainsEssayFileLinkEnglish"
+                                            formControlName="fileLinkEnglish" placeholder="https://drive.google.com/..."
+                                            class="form-control">
+                                        <div *ngIf="mainsEssayForm.get('fileLinkEnglish')?.errors?.['pattern']"
+                                            class="error-message">
+                                            Valid URL required
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="mainsEssayDescriptionEnglish">Description (English)</label>
+                                        <textarea id="mainsEssayDescriptionEnglish" formControlName="descriptionEnglish"
+                                            placeholder="e.g., Essay Paper - Complete Syllabus (English)" rows="2"
+                                            class="form-control">
+                                        </textarea>
+                                    </div>
+                                </div>
+
+                                <div class="language-section">
+                                    <h4>Hindi Version</h4>
+                                    <div class="form-group">
+                                        <label for="mainsEssayFileNameHindi">File Name (Hindi)</label>
+                                        <input type="text" id="mainsEssayFileNameHindi" formControlName="fileNameHindi"
+                                            placeholder="e.g., Essay Syllabus PDF 2024 (Hindi)" class="form-control">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="mainsEssayFileLinkHindi">File Link (Hindi)</label>
+                                        <input type="url" id="mainsEssayFileLinkHindi" formControlName="fileLinkHindi"
+                                            placeholder="https://drive.google.com/..." class="form-control">
+                                        <div *ngIf="mainsEssayForm.get('fileLinkHindi')?.errors?.['pattern']"
+                                            class="error-message">
+                                            Valid URL required
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="mainsEssayDescriptionHindi">Description (Hindi)</label>
+                                        <textarea id="mainsEssayDescriptionHindi" formControlName="descriptionHindi"
+                                            placeholder="e.g., Essay Paper - Complete Syllabus (Hindi)" rows="2"
+                                            class="form-control">
+                                        </textarea>
+                                    </div>
+                                </div>
+
+                                <div class="language-note">
+                                    <small><i class="fa fa-info-circle"></i> At least one language (English or Hindi)
+                                        must be provided. If you provide a file name, the corresponding file link is
+                                        required.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Optional Subjects -->
+                        <div class="form-section optional-section">
+                            <div class="section-header">
+                                <h3>Optional Subjects</h3>
+                            </div>
+
+                            <div formArrayName="optionalSubjects" class="optional-subjects">
+                                <div *ngFor="let subject of optionalSubjects.controls; let i = index"
+                                    [formGroupName]="i" class="optional-subject">
+
+                                    <div class="subject-header">
+                                        <div class="form-group compact">
+                                            <label>Subject Name *</label>
+                                            <input type="text" formControlName="subjectName"
+                                                placeholder="e.g., History, Mathematics" class="form-control"
+                                                [class.error]="subject.get('subjectName')?.invalid && subject.get('subjectName')?.touched">
+                                            <div *ngIf="subject.get('subjectName')?.invalid && subject.get('subjectName')?.touched"
+                                                class="error-message">
+                                                Subject name is required
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn-remove" (click)="removeOptionalSubject(i)">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+
+                                    <div formArrayName="documents" class="documents-list">
+                                        <div *ngFor="let document of getDocuments(i).controls; let j = index"
+                                            [formGroupName]="j" class="document-item">
+
+                                            <div *ngIf="hasDocumentLanguageError(i, j)" class="language-error">
+                                                {{ getDocumentLanguageErrorMessage(i, j) }}
+                                            </div>
+
+                                            <div class="document-fields">
+                                                <!-- English Fields -->
+                                                <div class="language-section">
+                                                    <h5>English Version</h5>
+                                                    <div class="form-group compact">
+                                                        <label>Document Name (English)</label>
+                                                        <input type="text" formControlName="fileNameEnglish"
+                                                            placeholder="Document name (English)" class="form-control">
+                                                    </div>
+
+                                                    <div class="form-group compact">
+                                                        <label>File Link (English)</label>
+                                                        <input type="url" formControlName="fileLinkEnglish"
+                                                            placeholder="https://drive.google.com/..."
+                                                            class="form-control">
+                                                        <div *ngIf="document.get('fileLinkEnglish')?.errors?.['pattern']"
+                                                            class="error-message">
+                                                            Valid URL required
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group compact">
+                                                        <label>Description (English)</label>
+                                                        <input type="text" formControlName="descriptionEnglish"
+                                                            placeholder="Document description (English)"
+                                                            class="form-control">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Hindi Fields -->
+                                                <div class="language-section">
+                                                    <h5>Hindi Version</h5>
+                                                    <div class="form-group compact">
+                                                        <label>Document Name (Hindi)</label>
+                                                        <input type="text" formControlName="fileNameHindi"
+                                                            placeholder="Document name (Hindi)" class="form-control">
+                                                    </div>
+
+                                                    <div class="form-group compact">
+                                                        <label>File Link (Hindi)</label>
+                                                        <input type="url" formControlName="fileLinkHindi"
+                                                            placeholder="https://drive.google.com/..."
+                                                            class="form-control">
+                                                        <div *ngIf="document.get('fileLinkHindi')?.errors?.['pattern']"
+                                                            class="error-message">
+                                                            Valid URL required
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group compact">
+                                                        <label>Description (Hindi)</label>
+                                                        <input type="text" formControlName="descriptionHindi"
+                                                            placeholder="Document description (Hindi)"
+                                                            class="form-control">
+                                                    </div>
+                                                </div>
+
+                                                <button type="button" class="btn-remove" (click)="removeDocument(i, j)"
+                                                    *ngIf="getDocuments(i).length > 1">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <button type="button" class="btn-add-document" (click)="addDocument(i)">
+                                            <i class="fa fa-plus"></i> Add Document
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn-add-subject" (click)="addOptionalSubject()">
+                                    <i class="fa fa-plus"></i> Add Subject
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline-danger" (click)="clearMainsForm()"
+                            [disabled]="isLoading">
+                            Clear All
+                        </button>
+                        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+                            <span *ngIf="!isLoading">{{ hasMainsData ? 'Update' : 'Save' }} Mains Syllabus</span>
+                            <span *ngIf="isLoading">Saving...</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary" (click)="cancelMainsEdit()"
+                            [disabled]="isLoading">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOPICWISE DETAIL EXPLANATION TAB -->
+    <div *ngIf="activeTab === 'topicwise'" class="tab-content">
+        <!-- Subtabs for each analysis type -->
+        <div class="topicwise-subtabs">
+            <button class="subtab-button" [class.active]="topicwiseSubTab === 'prelims1'"
+                (click)="switchTopicwiseSubTab('prelims1')">
+                Prelims Paper-I
+            </button>
+            <button class="subtab-button" [class.active]="topicwiseSubTab === 'prelims2'"
+                (click)="switchTopicwiseSubTab('prelims2')">
+                Prelims Paper-II
+            </button>
+            <button class="subtab-button" [class.active]="topicwiseSubTab === 'gs1'"
+                (click)="switchTopicwiseSubTab('gs1')">
+                GS Paper 1
+            </button>
+            <button class="subtab-button" [class.active]="topicwiseSubTab === 'gs2'"
+                (click)="switchTopicwiseSubTab('gs2')">
+                GS Paper 2
+            </button>
+            <button class="subtab-button" [class.active]="topicwiseSubTab === 'gs3'"
+                (click)="switchTopicwiseSubTab('gs3')">
+                GS Paper 3
+            </button>
+            <button class="subtab-button" [class.active]="topicwiseSubTab === 'gs4'"
+                (click)="switchTopicwiseSubTab('gs4')">
+                GS Paper 4
+            </button>
+            <button class="subtab-button" [class.active]="topicwiseSubTab === 'essay'"
+                (click)="switchTopicwiseSubTab('essay')">
+                Essay
+            </button>
+            <button class="subtab-button" [class.active]="topicwiseSubTab === 'optional'"
+                (click)="switchTopicwiseSubTab('optional')">
+                Optional
+            </button>
+        </div>
+
+        <!-- Dynamic Directory Explorer for each subtab -->
+        <div class="directory-explorer">
+            <div *ngIf="topicwiseSubTab === 'prelims1'" class="tab-content active">
+                <app-directory-explorer [category]="'prelims-paper-1'" [categoryName]="'Prelims Paper-I'">
+                </app-directory-explorer>
+            </div>
+            <div *ngIf="topicwiseSubTab === 'prelims2'" class="tab-content">
+                <app-directory-explorer [category]="'prelims-paper-2'" [categoryName]="'Prelims Paper-II'">
+                </app-directory-explorer>
+            </div>
+            <!-- GS Paper 1 Analysis -->
+            <div *ngIf="topicwiseSubTab === 'gs1'" class="tab-content active">
+                <app-directory-explorer [category]="'gs1-analysis'" [categoryName]="'GS Paper 1 Analysis'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- GS Paper 2 Analysis -->
+            <div *ngIf="topicwiseSubTab === 'gs2'" class="tab-content">
+                <app-directory-explorer [category]="'gs2-analysis'" [categoryName]="'GS Paper 2 Analysis'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- GS Paper 3 Analysis -->
+            <div *ngIf="topicwiseSubTab === 'gs3'" class="tab-content">
+                <app-directory-explorer [category]="'gs3-analysis'" [categoryName]="'GS Paper 3 Analysis'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- GS Paper 4 Analysis -->
+            <div *ngIf="topicwiseSubTab === 'gs4'" class="tab-content">
+                <app-directory-explorer [category]="'gs4-analysis'" [categoryName]="'GS Paper 4 Analysis'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- Essay Paper Analysis -->
+            <div *ngIf="topicwiseSubTab === 'essay'" class="tab-content">
+                <app-directory-explorer [category]="'essay-analysis'" [categoryName]="'Essay Paper Analysis'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- Optional Subjects -->
+            <div *ngIf="topicwiseSubTab === 'optional'" class="tab-content">
+                <app-directory-explorer [category]="'optional-subjects'" [categoryName]="'Optional Subjects'">
+                </app-directory-explorer>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="activeTab === 'videos'" class="tab-content">
+        <!-- Subtabs for video categories -->
+        <div class="video-subtabs">
+            <button class="subtab-button" [class.active]="videoSubTab === 'gs1'" (click)="switchVideoSubTab('gs1')">
+                GS Paper 1 Videos
+            </button>
+            <button class="subtab-button" [class.active]="videoSubTab === 'gs2'" (click)="switchVideoSubTab('gs2')">
+                GS Paper 2 Videos
+            </button>
+            <button class="subtab-button" [class.active]="videoSubTab === 'gs3'" (click)="switchVideoSubTab('gs3')">
+                GS Paper 3 Videos
+            </button>
+            <button class="subtab-button" [class.active]="videoSubTab === 'gs4'" (click)="switchVideoSubTab('gs4')">
+                GS Paper 4 Videos
+            </button>
+            <button class="subtab-button" [class.active]="videoSubTab === 'essay'" (click)="switchVideoSubTab('essay')">
+                Essay Writing Videos
+            </button>
+            <button class="subtab-button" [class.active]="videoSubTab === 'strategy'"
+                (click)="switchVideoSubTab('strategy')">
+                Strategy Sessions
+            </button>
+            <button class="subtab-button" [class.active]="videoSubTab === 'current'"
+                (click)="switchVideoSubTab('current')">
+                Current Affairs
+            </button>
+            <button class="subtab-button" [class.active]="videoSubTab === 'mock'" (click)="switchVideoSubTab('mock')">
+                Mock Interviews
+            </button>
+        </div>
+
+        <!-- Dynamic Directory Explorer for each video subtab -->
+        <div class="video-directory-explorer">
+            <!-- GS Paper 1 Videos -->
+            <div *ngIf="videoSubTab === 'gs1'" class="tab-content active">
+                <app-directory-explorer [category]="'gs1-videos'" [categoryName]="'GS Paper 1 Videos'"
+                    [resourceType]="'video'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- GS Paper 2 Videos -->
+            <div *ngIf="videoSubTab === 'gs2'" class="tab-content">
+                <app-directory-explorer [category]="'gs2-videos'" [categoryName]="'GS Paper 2 Videos'"
+                    [resourceType]="'video'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- GS Paper 3 Videos -->
+            <div *ngIf="videoSubTab === 'gs3'" class="tab-content">
+                <app-directory-explorer [category]="'gs3-videos'" [categoryName]="'GS Paper 3 Videos'"
+                    [resourceType]="'video'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- GS Paper 4 Videos -->
+            <div *ngIf="videoSubTab === 'gs4'" class="tab-content">
+                <app-directory-explorer [category]="'gs4-videos'" [categoryName]="'GS Paper 4 Videos'"
+                    [resourceType]="'video'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- Essay Writing Videos -->
+            <div *ngIf="videoSubTab === 'essay'" class="tab-content">
+                <app-directory-explorer [category]="'essay-videos'" [categoryName]="'Essay Writing Videos'"
+                    [resourceType]="'video'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- Strategy Sessions -->
+            <div *ngIf="videoSubTab === 'strategy'" class="tab-content">
+                <app-directory-explorer [category]="'strategy-sessions'" [categoryName]="'Strategy Sessions'"
+                    [resourceType]="'video'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- Current Affairs -->
+            <div *ngIf="videoSubTab === 'current'" class="tab-content">
+                <app-directory-explorer [category]="'current-affairs'" [categoryName]="'Current Affairs'"
+                    [resourceType]="'video'">
+                </app-directory-explorer>
+            </div>
+
+            <!-- Mock Interviews -->
+            <div *ngIf="videoSubTab === 'mock'" class="tab-content">
+                <app-directory-explorer [category]="'mock-interviews'" [categoryName]="'Mock Interviews'"
+                    [resourceType]="'video'">
+                </app-directory-explorer>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,204 @@
+<div class="mentorship-admin-container">
+  <div class="header">
+    <div class="header-title-wrap">
+      <span class="header-icon" aria-hidden="true"><mat-icon>school</mat-icon></span>
+      <h1>{{ 'Mentorship Programs' | t }}</h1>
+    </div>
+
+    <div class="admin-actions">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>{{ 'Create New Program' | t }}</button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>{{ 'Search programs' | t }}</mat-label>
+          <input matInput [formControl]="searchControl" placeholder="Search by name or description">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="status-field">
+          <mat-label>{{ 'Status' | t }}</mat-label>
+          <mat-select [(value)]="selectedStatus" (selectionChange)="loadPrograms()">
+            <mat-option value="">{{ 'All Programs' | t }}</mat-option>
+            <mat-option value="active">{{ 'Active Only' | t }}</mat-option>
+            <mat-option value="inactive">{{ 'Inactive Only' | t }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading">
+    <mat-spinner></mat-spinner>
+    <p>{{ 'Loading programs...' | t }}</p>
+  </div>
+
+  <!-- Programs List -->
+  <div *ngIf="!loading()">
+    <div *ngIf="programs().length === 0" class="no-programs">
+      <mat-card>
+        <mat-card-content>
+          <p>{{ 'No mentorship programs found.' | t }}</p>
+          <p *ngIf="searchControl.value || selectedStatus">{{ 'Try adjusting your filters.' | t }}</p>
+          <button mat-button color="primary" (click)="openCreateDialog()">{{ 'Create your first program' | t }}</button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div *ngIf="programs().length > 0" class="programs-grid">
+      <mat-card *ngFor="let program of programs()" class="program-card">
+        <mat-card-header>
+          <mat-card-title>
+            {{ program.name }}
+            <span class="status-badge" [class.active]="program.isActive" [class.inactive]="!program.isActive">
+              {{ (program.isActive ? 'Active' : 'Inactive') | t }}
+            </span>
+          </mat-card-title>
+          <mat-card-subtitle>
+            Starts: {{ program.startDate | date:'mediumDate' }}
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="program-details">
+            <p class="description">Description: {{ program.description }}</p>
+            
+            <div class="detail-row">
+              <mat-icon>schedule</mat-icon>
+              <span>Duration: {{ program.duration }}</span>
+            </div>
+            
+            <div class="detail-row">
+              <mat-icon>computer</mat-icon>
+              <span>Medium: {{ program.medium | titlecase }}</span>
+            </div>
+            
+            <div class="detail-row">
+              <mat-icon>payments</mat-icon>
+              <span>Fee: ₹{{ program.fee | number }}</span>
+            </div>
+            
+            <div class="brochure-links">
+              <a [href]="program.brochureHindi" target="_blank" mat-button color="accent">
+                <mat-icon>picture_as_pdf</mat-icon>{{ 'Hindi Brochure' | t }}</a>
+              <a [href]="program.brochureEnglish" target="_blank" mat-button color="accent">
+                <mat-icon>picture_as_pdf</mat-icon>{{ 'English Brochure' | t }}</a>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions align="end">
+          <button mat-button color="primary" (click)="openEditDialog(program)">
+            <mat-icon>edit</mat-icon>
+            {{ 'Edit' | t }}
+          </button>
+          <button mat-button [color]="program.isActive ? 'warn' : 'primary'" 
+                  (click)="toggleProgramStatus(program)">
+            <mat-icon>{{ program.isActive ? 'toggle_off' : 'toggle_on' }}</mat-icon>
+            {{ program.isActive ? 'Deactivate' : 'Activate' }}
+          </button>
+          <button mat-button color="warn" (click)="deleteProgram(program)">
+            <mat-icon>delete</mat-icon>
+            {{ 'Delete' | t }}
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Dialog -->
+<ng-template #programDialog>
+  <h2 mat-dialog-title>{{ editingProgram ? 'Edit' : 'Create' }} Mentorship Program</h2>
+
+  <form [formGroup]="programForm" (ngSubmit)="onSubmit()">
+    <mat-dialog-content class="dialog-content">
+      <div class="form-grid">
+        <mat-form-field><mat-label>{{ 'Program' | t }}</mat-label><mat-select formControlName="programId" (selectionChange)="loadBatches($event.value)"><mat-option [value]="null">{{ 'All' | t }}</mat-option><mat-option *ngFor="let item of relatedPrograms" [value]="item._id">{{item.programName | t:item.programNameHindi}}</mat-option></mat-select></mat-form-field>
+        <mat-form-field><mat-label>{{ 'Batch' | t }}</mat-label><mat-select formControlName="batchId"><mat-option [value]="null">{{ 'All batches' | t }}</mat-option><mat-option *ngFor="let item of relatedBatches" [value]="item._id">{{item.batchName | t:item.batchNameHindi}}</mat-option></mat-select></mat-form-field>
+        <mat-form-field><mat-label>{{ 'Name (Hindi)' | t }}</mat-label><input matInput formControlName="nameHindi"></mat-form-field>
+        <mat-form-field><mat-label>{{ 'Description (Hindi)' | t }}</mat-label><textarea matInput formControlName="descriptionHindi"></textarea></mat-form-field>
+        <mat-form-field><mat-label>{{ 'Duration (Hindi)' | t }}</mat-label><input matInput formControlName="durationHindi"></mat-form-field>
+        <!-- Name -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'Program Name' | t }}</mat-label>
+          <input matInput formControlName="name" placeholder="Enter program name">
+          <mat-error *ngIf="programForm.get('name')?.hasError('required')">{{ 'Program name is required' | t }}</mat-error>
+        </mat-form-field>
+
+        <!-- Description -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'Description' | t }}</mat-label>
+          <textarea matInput formControlName="description" rows="4" 
+                    placeholder="Enter program description"></textarea>
+          <mat-error *ngIf="programForm.get('description')?.hasError('required')">{{ 'Description is required' | t }}</mat-error>
+        </mat-form-field>
+
+        <!-- Duration -->
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'Duration' | t }}</mat-label>
+          <input matInput formControlName="duration" placeholder="e.g., 3 months, 6 weeks">
+          <mat-error *ngIf="programForm.get('duration')?.hasError('required')">{{ 'Duration is required' | t }}</mat-error>
+        </mat-form-field>
+
+        <!-- Start Date -->
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'Start Date' | t }}</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="startDate">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          <mat-error *ngIf="programForm.get('startDate')?.hasError('required')">{{ 'Start date is required' | t }}</mat-error>
+        </mat-form-field>
+
+        <!-- Medium -->
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'Medium' | t }}</mat-label>
+          <mat-select formControlName="medium">
+            <mat-option value="english">English</mat-option>
+            <mat-option value="hindi">Hindi</mat-option>
+            <mat-option value="english/hindi">English/Hindi</mat-option>
+          </mat-select>
+          <mat-error *ngIf="programForm.get('medium')?.hasError('required')">{{ 'Medium is required' | t }}</mat-error>
+        </mat-form-field>
+
+        <!-- Fee -->
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'Fee (₹)' | t }}</mat-label>
+          <input matInput type="number" formControlName="fee" min="0" step="100">
+          <mat-error *ngIf="programForm.get('fee')?.hasError('required')">{{ 'Fee is required' | t }}</mat-error>
+          <mat-error *ngIf="programForm.get('fee')?.hasError('min')">{{ 'Fee cannot be negative' | t }}</mat-error>
+        </mat-form-field>
+
+        <!-- Hindi Brochure Link -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'Hindi Brochure Link' | t }}</mat-label>
+          <input matInput formControlName="brochureHindi" placeholder="Enter PDF link">
+          <mat-error *ngIf="programForm.get('brochureHindi')?.hasError('required')">{{ 'Hindi brochure link is required' | t }}</mat-error>
+        </mat-form-field>
+
+        <!-- English Brochure Link -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'English Brochure Link' | t }}</mat-label>
+          <input matInput formControlName="brochureEnglish" placeholder="Enter PDF link">
+          <mat-error *ngIf="programForm.get('brochureEnglish')?.hasError('required')">{{ 'English brochure link is required' | t }}</mat-error>
+        </mat-form-field>
+
+        <!-- Active Status (for edit only) -->
+        <mat-checkbox *ngIf="editingProgram" formControlName="isActive" class="full-width">{{ 'Active Program' | t }}</mat-checkbox>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-button type="button" (click)="closeDialog()">{{ 'Cancel' | t }}</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="!programForm.valid || submitting()">
+        {{ submitting() ? 'Saving...' : (editingProgram ? 'Update' : 'Create') }}
+      </button>
+    </mat-dialog-actions>
+  </form>
+</ng-template>

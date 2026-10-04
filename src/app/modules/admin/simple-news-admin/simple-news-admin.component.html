@@ -1,0 +1,176 @@
+<div class="admin-news">
+  <h3>Manage News Ticker</h3>
+  
+  <!-- Create News Form -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5>Add New News</h5>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <div class="form-group">
+            <label class="form-label">
+              <i class="bi bi-translate me-1"></i> English Text
+            </label>
+            <textarea 
+              [(ngModel)]="newText" 
+              class="form-control textarea-field" 
+              placeholder="Enter English news here..."
+              rows="4"
+              (input)="checkFormValidity()"
+              maxlength="1000"
+              [class.is-valid]="newText.trim().length > 0"
+              [class.is-invalid]="newText.trim().length === 0 && newTextHi.trim().length > 0">
+            </textarea>
+            <div class="d-flex justify-content-between mt-1">
+              <small *ngIf="newText.trim().length === 0 && newTextHi.trim().length > 0" class="text-danger">
+                <i class="bi bi-exclamation-circle me-1"></i> English text required
+              </small>
+              <small class="text-muted ms-auto">
+                {{ newText.length }}/1000 characters
+              </small>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <div class="form-group">
+            <label class="form-label">
+              <i class="bi bi-translate me-1"></i> Hindi Text
+            </label>
+            <textarea 
+              [(ngModel)]="newTextHi" 
+              class="form-control textarea-field" 
+              placeholder="Enter Hindi news here..."
+              rows="4"
+              (input)="checkFormValidity()"
+              maxlength="1000"
+              [class.is-valid]="newTextHi.trim().length > 0"
+              [class.is-invalid]="newTextHi.trim().length === 0 && newText.trim().length > 0">
+            </textarea>
+            <div class="d-flex justify-content-between mt-1">
+              <small *ngIf="newTextHi.trim().length === 0 && newText.trim().length > 0" class="text-danger">
+                <i class="bi bi-exclamation-circle me-1"></i> Hindi text required
+              </small>
+              <small class="text-muted ms-auto">
+                {{ newTextHi.length }}/1000 characters
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="autoScroll" [(ngModel)]="autoScroll">
+          <label class="form-check-label" for="autoScroll">
+            Auto-scroll to bottom after adding
+          </label>
+        </div>
+        
+        <button 
+          (click)="createNews()" 
+          class="btn btn-primary px-4 py-2"
+          [disabled]="!isFormValid"
+          [class.btn-pulse]="isFormValid">
+          <i class="bi bi-plus-circle me-2"></i>
+          <span *ngIf="!isFormValid">
+            Fill Both Fields
+          </span>
+          <span *ngIf="isFormValid">
+            Add News Item
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- News List Table -->
+  <div class="card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0">All News Items</h5>
+      </div>
+      
+      <div *ngIf="allNews.length === 0" class="text-center py-5 text-muted empty-state">
+        <i class="bi bi-newspaper" style="font-size: 64px; opacity: 0.3;"></i>
+        <h6 class="mt-3 mb-2">No News Items Yet</h6>
+        <p class="mb-0">Start by adding your first news item above</p>
+      </div>
+      
+      <div *ngIf="allNews.length > 0" class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" width="100">Status</th>
+              <th scope="col" width="150">Date Added</th>
+              <th scope="col">English Text</th>
+              <th scope="col">Hindi Text</th>
+              <th scope="col" width="180" class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let news of allNews" 
+                class="news-table-row"
+                [class.table-active]="news.isActive">
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="status-indicator me-2" [class.active]="news.isActive"></div>
+                  <span class="status-text" [class.text-success]="news.isActive" [class.text-muted]="!news.isActive">
+                    {{ news.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                  <span *ngIf="news.isActive" class="badge bg-info ms-2">Currently Active</span>
+                </div>
+              </td>
+              <td>
+                <small class="text-muted">
+                  <i class="bi bi-calendar3 me-1"></i> {{ formatDate(news.createdAt) }}
+                </small>
+              </td>
+              <td>
+                <div class="news-text-content english-text">
+                  <div class="language-label mb-1">
+                    <i class="bi bi-globe me-1"></i> English
+                  </div>
+                  <p class="mb-0">{{ news.text }}</p>
+                </div>
+              </td>
+              <td>
+                <div class="news-text-content hindi-text">
+                  <div class="language-label mb-1">
+                    <i class="bi bi-translate me-1"></i> Hindi
+                  </div>
+                  <p class="mb-0 text-muted">{{ news.textHi }}</p>
+                </div>
+              </td>
+              <td>
+                <div class="d-flex justify-content-center gap-3 align-items-center">
+                  <!-- Toggle Switch Button -->
+                  <button type="button" 
+                          class="toggle-switch"
+                          [class.on]="news.isActive"
+                          [class.off]="!news.isActive"
+                          [disabled]="isToggling"
+                          (click)="toggleStatus(news._id, !news.isActive)"
+                          [title]="news.isActive ? 'Click to deactivate' : 'Click to activate'">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label on">ON</span>
+                    <span class="toggle-label off">OFF</span>
+                  </button>
+                  
+                  <!-- Delete Button -->
+                  <button (click)="deleteNews(news._id)" 
+                          class="btn btn-sm btn-outline-danger"
+                          [disabled]="isToggling"
+                          title="Delete this news">
+                    <i class="bi bi-trash"></i>
+                    <span class="d-none d-md-inline ms-1">Delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

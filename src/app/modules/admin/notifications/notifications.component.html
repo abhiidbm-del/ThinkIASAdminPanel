@@ -1,0 +1,52 @@
+<main class="page">
+  <header class="page-header">
+    <div class="eyebrow"><span class="eyebrow-dot"></span> Communication centre</div>
+    <div class="heading-row">
+      <div>
+        <h1>{{ 'Student notifications' | t }}</h1>
+        <p>{{ 'Create an in-app and Firebase push notification.' | t }}</p>
+      </div>
+      <div class="header-mark" aria-hidden="true">N</div>
+    </div>
+  </header>
+
+  <section class="composer">
+    <div class="section-heading">
+      <div>
+        <span class="section-kicker">New broadcast</span>
+        <h2>Write your message</h2>
+      </div>
+      <span class="status-pill"><span></span> Ready to send</span>
+    </div>
+
+    <div class="language-grid">
+      <div class="language-panel hindi-panel">
+        <div class="panel-title"><span class="language-badge">हि</span><div><h3>Hindi version</h3><small>Optional regional copy</small></div></div>
+        <label>{{ 'Title (Hindi)' | t }}<input [(ngModel)]="titleHindi" maxlength="120" placeholder="सूचना का शीर्षक"></label>
+        <label>{{ 'Message (Hindi)' | t }}<textarea [(ngModel)]="bodyHindi" maxlength="500" placeholder="विद्यार्थियों के लिए संदेश लिखें"></textarea></label>
+      </div>
+
+      <div class="language-panel english-panel">
+        <div class="panel-title"><span class="language-badge">EN</span><div><h3>English version</h3><small>Primary notification copy</small></div></div>
+        <label>{{ 'Title' | t }}<input [(ngModel)]="title" maxlength="120" placeholder="Notification title"></label>
+        <label>{{ 'Message' | t }}<textarea [(ngModel)]="body" maxlength="500" placeholder="Write a clear message for students"></textarea></label>
+      </div>
+    </div>
+
+    <div class="delivery-section">
+      <div class="section-heading compact-heading">
+        <div><span class="section-kicker">Delivery settings</span><h2>Choose who should receive it</h2></div>
+      </div>
+      <div class="settings-grid">
+        <label>{{ 'Audience' | t }}<select [(ngModel)]="audience"><option value="all">{{ 'All students' | t }}</option><option value="fresh">{{ 'Fresh' | t }}</option><option value="pre">{{ 'Prelims' | t }}</option><option value="mains">{{ 'Mains' | t }}</option><option value="combo">{{ 'Combo' | t }}</option></select></label>
+        <label>{{ 'Type' | t }}<select [(ngModel)]="type"><option value="general">{{ 'General' | t }}</option><option value="news">{{ 'News' | t }}</option><option value="test_series">{{ 'Test series' | t }}</option></select></label>
+        <label class="route-field">{{ 'Student portal route (optional)' | t }}<input [(ngModel)]="link" placeholder="/prelims-tests"></label>
+      </div>
+    </div>
+
+    <div class="form-footer">
+      <p class="feedback" [class.visible]="message()">{{ message() }}</p>
+      <button class="send-button" (click)="send()" [disabled]="loading()"><span class="send-icon">↗</span>{{ (loading() ? 'Sending…' : 'Send notification') | t }}</button>
+    </div>
+  </section>
+</main>

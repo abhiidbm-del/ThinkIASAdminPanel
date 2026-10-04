@@ -1,0 +1,421 @@
+<div class="meeting-container" [class.mains-mentorship]="audience === 'mains'">
+  <!-- Header -->
+  <div class="meeting-header">
+    <div class="header-content">
+      <i class="fa header-icon" [ngClass]="audience === 'mains' ? 'fa-file-alt' : 'fa-clipboard-list'"></i>
+      <h2>{{ audience === 'mains' ? 'Mains Mentorship Planner' : 'Prelims Mentorship Planner' }}</h2>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <i class="fa fa-plus-circle"></i>
+        Create New Meeting
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages-container" *ngIf="successMessage || errorMessage">
+    <div class="message success" *ngIf="successMessage">
+      <i class="fa fa-check-circle"></i>
+      {{ successMessage }}
+      <button class="message-close" (click)="successMessage = ''">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <div class="message error" *ngIf="errorMessage">
+      <i class="fa fa-exclamation-circle"></i>
+      {{ errorMessage }}
+      <button class="message-close" (click)="errorMessage = ''">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="loading-content">
+      <div class="spinner">
+        <i class="fa fa-spinner fa-spin"></i>
+      </div>
+      <p>Loading meetings...</p>
+    </div>
+  </div>
+
+  <!-- Upcoming Meetings -->
+  <div class="meetings-section" *ngIf="!loading">
+    <div class="section-header">
+      <h3>
+        <i class="fa fa-clock"></i>
+        Upcoming Meetings
+        <span class="badge">{{ upcomingMeetings.length }}</span>
+      </h3>
+    </div>
+
+    <div class="empty-state" *ngIf="upcomingMeetings.length === 0">
+      <i class="fa fa-calendar-times"></i>
+      <h4>No upcoming meetings</h4>
+      <p>Create your first meeting to get started</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="upcomingMeetings.length > 0">
+      <table class="meetings-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Date & Time</th>
+            <th>Description</th>
+            <th>Duration</th>
+            <th>Meeting Link</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let meeting of upcomingMeetings" 
+              [class.active-now]="isMeetingNow(meeting)"
+              [class.upcoming]="isMeetingUpcoming(meeting)">
+            <td class="title-cell">
+              <strong>{{ meeting.title }}</strong>
+            </td>
+            <td class="date-cell">
+              {{ formatDate(meeting.meetingDate) }}
+            </td>
+            <td class="description-cell">
+              {{ meeting.description || '-' }}
+            </td>
+            <td class="duration-cell">
+              {{ meeting.duration }} minutes
+            </td>
+            <td class="link-cell">
+              <a [href]="meeting.meetingLink" target="_blank" class="meeting-link">
+                <i class="fa fa-external-link-alt"></i> Join Meeting
+              </a>
+            </td>
+            <td class="status-cell">
+              <span class="status-badge" [class.now]="isMeetingNow(meeting)" [class.upcoming]="isMeetingUpcoming(meeting)">
+                {{ isMeetingNow(meeting) ? 'Live Now' : 'Upcoming' }}
+              </span>
+            </td>
+            <td class="actions-cell">
+  <button class="btn-icon edit" (click)="openEditModal(meeting); $event.stopPropagation()">
+    <i class="fa fa-edit"></i>
+  </button>
+  <button class="btn-icon delete" (click)="openDeleteModal(meeting); $event.stopPropagation()">
+    <i class="fa fa-trash"></i>
+  </button>
+</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Meeting History -->
+  <div class="meetings-section" *ngIf="!loading && completedMeetings.length > 0">
+    <div class="section-header">
+      <h3>
+        <i class="fa fa-history"></i>
+        Meeting History
+        <span class="badge">{{ completedMeetings.length }}</span>
+      </h3>
+    </div>
+
+    <div class="table-responsive">
+      <table class="meetings-table history">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Date & Time</th>
+            <th>Description</th>
+            <th>Duration</th>
+            <th>Video Link</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let meeting of completedMeetings">
+            <td class="title-cell">
+              <strong>{{ meeting.title }}</strong>
+            </td>
+            <td class="date-cell">
+              {{ formatDate(meeting.meetingDate) }}
+            </td>
+            <td class="description-cell">
+              {{ meeting.description || '-' }}
+            </td>
+            <td class="duration-cell">
+              {{ meeting.duration }} minutes
+            </td>
+            <td class="video-link-cell">
+              <span *ngIf="meeting.videoLink; else noVideo">
+                <a [href]="meeting.videoLink" target="_blank" class="video-link">
+                  <i class="fa fa-video"></i> Watch Recording
+                </a>
+              </span>
+              <ng-template #noVideo>
+                <span class="no-video">Add Link</span>
+                <button class="btn-icon video" (click)="openVideoLinkModal(meeting)" 
+          *ngIf="!meeting.videoLink" title="Add Video Link">
+    <i class="fa fa-link"></i>
+  </button>
+              </ng-template>
+            </td>
+            <!-- Find this section in the Meeting History table -->
+<td class="actions-cell">
+  <button class="btn-icon edit" (click)="openEditHistoryModal(meeting)" 
+          title="Edit Meeting">
+    <i class="fa fa-edit"></i>
+  </button>
+  
+  <div class="video-actions" *ngIf="meeting.videoLink">
+    <!-- <a [href]="meeting.videoLink" target="_blank" class="btn-icon view" 
+       title="View Recording">
+      <i class="fa fa-eye"></i>
+    </a> -->
+    <!-- <button class="btn-icon edit-video" (click)="openVideoLinkModal(meeting)" 
+            title="Edit Video Link">
+      <i class="fa fa-edit"></i>
+    </button> -->
+  </div>
+  <!-- <button class="btn-icon video" (click)="openVideoLinkModal(meeting)" 
+          *ngIf="!meeting.videoLink" title="Add Video Link">
+    <i class="fa fa-link"></i>
+  </button> -->
+  
+  <button class="btn-icon delete" (click)="openDeleteHistoryModal(meeting)" 
+          title="Delete Meeting">
+    <i class="fa fa-trash"></i>
+  </button>
+</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<!-- Create Meeting Modal -->
+<ng-template #createMeetingDialog>
+  <div class="modal meeting-create-modal" *ngIf="showCreateModal">
+    <div class="modal-header">
+      <i class="fa fa-plus-circle modal-icon"></i>
+      <h3>Create New Meeting</h3>
+      <button class="btn-close" (click)="closeCreateModal()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Audience *</label>
+        <select [(ngModel)]="newMeeting.audience" class="form-control">
+          <option value="pre">Prelims mentorship</option>
+          <option value="mains">Mains mentorship</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Meeting Title *</label>
+        <input type="text" [(ngModel)]="newMeeting.title" 
+               placeholder="Enter meeting title" class="form-control" autofocus>
+      </div>
+      
+      <div class="form-group">
+        <label>Description (Optional)</label>
+        <textarea [(ngModel)]="newMeeting.description" 
+                  placeholder="Meeting description"
+                  class="form-control" rows="3"></textarea>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date & Time *</label>
+          <input type="datetime-local" [(ngModel)]="newMeeting.meetingDate" 
+                 class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>Duration (minutes) *</label>
+          <input type="number" [(ngModel)]="newMeeting.duration" 
+                 min="1" class="form-control" placeholder="Enter the Duration">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Meeting Link *</label>
+        <input type="url" [(ngModel)]="newMeeting.meetingLink" 
+               placeholder="https://meet.google.com/xxx-xxxx-xxx" class="form-control">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" (click)="closeCreateModal()">
+        Cancel
+      </button>
+      <button class="btn primary" (click)="createMeeting()" 
+              [disabled]="!newMeeting.title.trim() || !newMeeting.meetingDate || !newMeeting.meetingLink.trim()">
+        <i class="fa fa-check"></i>
+        Create Meeting
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Edit Meeting Modal -->
+<!-- Edit Meeting Modal -->
+
+
+<!-- Video Link Modal -->
+<div class="modal-overlay" *ngIf="showVideoLinkModal && selectedMeeting">
+  <div class="modal">
+    <div class="modal-header">
+      <i class="fa fa-video modal-icon"></i>
+      <h3>Add Video Link: {{ selectedMeeting.title }}</h3>
+      <button class="btn-close" (click)="showVideoLinkModal = false">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="info-message">
+        <i class="fa fa-info-circle"></i>
+        <p>Add the recording link for this completed meeting. Students will be able to watch the recording.</p>
+      </div>
+      
+      <div class="form-group">
+        <label>Video/Recording Link</label>
+        <input type="url" [(ngModel)]="videoLink" 
+               placeholder="https://youtube.com/watch?v=xxx or https://drive.google.com/file/d/xxx"
+               class="form-control" autofocus>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" (click)="showVideoLinkModal = false">
+        Cancel
+      </button>
+      <button class="btn primary" (click)="updateVideoLink()">
+        <i class="fa fa-save"></i>
+        Save Video Link
+      </button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" *ngIf="showEditHistoryModal && selectedMeeting">
+  <div class="modal">
+    <div class="modal-header">
+      <i class="fa fa-edit modal-icon"></i>
+      <h3>Edit Meeting: {{ selectedMeeting.title }}</h3>
+      <button class="btn-close" (click)="showEditHistoryModal = false">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="info-message">
+        <i class="fa fa-info-circle"></i>
+        <p>You can edit title, description, and video link for completed meetings.</p>
+      </div>
+      
+      <div class="form-group">
+        <label>Meeting Title *</label>
+        <input type="text" [(ngModel)]="editHistoryMeeting.title" 
+               [value]="selectedMeeting.title"
+               placeholder="Enter meeting title" class="form-control" autofocus>
+      </div>
+      
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="editHistoryMeeting.description" 
+                  [value]="selectedMeeting.description"
+                  placeholder="Meeting description"
+                  class="form-control" rows="3"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Duration (minutes) *</label>
+        <input type="number" [(ngModel)]="editHistoryMeeting.duration" 
+               min="1" class="form-control" placeholder="Enter duration in minutes">
+      </div>
+      
+      <div class="form-group">
+        <label>Video/Recording Link</label>
+        <input type="url" [(ngModel)]="editHistoryMeeting.videoLink" 
+               [value]="selectedMeeting.videoLink"
+               placeholder="https://youtube.com/watch?v=xxx"
+               class="form-control">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" (click)="showEditHistoryModal = false">
+        Cancel
+      </button>
+      <button class="btn primary" (click)="updateCompletedMeeting()" 
+              [disabled]="!editHistoryMeeting.title?.trim()">
+        <i class="fa fa-save"></i>
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete History Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteHistoryModal && selectedMeeting">
+  <div class="modal">
+    <div class="modal-header">
+      <i class="fa fa-exclamation-triangle modal-icon"></i>
+      <h3>Delete Meeting from History</h3>
+      <button class="btn-close" (click)="showDeleteHistoryModal = false">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="warning-icon">
+        <i class="fa fa-exclamation-circle"></i>
+      </div>
+      <h4>Are you sure?</h4>
+      <p>You are about to delete the meeting <strong>"{{ selectedMeeting.title }}"</strong> from history.</p>
+      <p class="warning-text">
+        <i class="fa fa-calendar-times"></i>
+        This action cannot be undone. All data including video links will be lost.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" (click)="showDeleteHistoryModal = false">
+        Cancel
+      </button>
+      <button class="btn danger" (click)="deleteMeeting()">
+        <i class="fa fa-trash"></i>
+        Delete from History
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteModal && selectedMeeting">
+  <div class="modal">
+    <div class="modal-header">
+      <i class="fa fa-exclamation-triangle modal-icon"></i>
+      <h3>Delete Meeting</h3>
+      <button class="btn-close" (click)="showDeleteModal = false">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="warning-icon">
+        <i class="fa fa-exclamation-circle"></i>
+      </div>
+      <h4>Are you sure?</h4>
+      <p>You are about to delete the meeting <strong>"{{ selectedMeeting.title }}"</strong>.</p>
+      <p class="warning-text">
+        <i class="fa fa-calendar-times"></i>
+        This action cannot be undone.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" (click)="showDeleteModal = false">
+        Cancel
+      </button>
+      <button class="btn danger" (click)="deleteMeeting()">
+        <i class="fa fa-trash"></i>
+        Delete Meeting
+      </button>
+    </div>
+  </div>
+</div>

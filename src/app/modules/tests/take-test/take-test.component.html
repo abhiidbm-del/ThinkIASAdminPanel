@@ -1,0 +1,130 @@
+<div class="test-wrapper" *ngIf="test() && !loading()">
+
+  <!-- Top Bar -->
+  <div class="header-bar">
+    <div>
+      <strong>{{ test().title }}</strong>
+      <p>{{ test().description }}</p>
+    </div>
+
+    <!-- Language Switch Toggle -->
+    <mat-radio-group [(ngModel)]="selectedLanguage" class="language-toggle">
+      <mat-radio-button value="english">English</mat-radio-button>
+      <mat-radio-button value="hindi">हिन्दी</mat-radio-button>
+    </mat-radio-group>
+
+    <!-- Timer -->
+    <div class="timer">
+      Time Left: <strong>{{ formatTime(timeLeft()) }}</strong>
+    </div>
+  </div>
+
+  <!-- Test Form -->
+  <form [formGroup]="testForm" class="test-grid">
+
+    <!-- LEFT PANEL (SINGLE QUESTION) -->
+    <div class="question-panel">
+      <mat-card class="question-card">
+        <mat-card-header>
+          <mat-card-title>Question {{ currentQuestionIndex() + 1 }} of {{ test().questions.length }}</mat-card-title>
+          <mat-card-subtitle>Marks: {{ currentQuestion().marks }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <p class="question-text">
+            {{ currentQuestion().question[selectedLanguage] }}
+          </p>
+
+          <!-- <p class="desc-text">
+            {{ currentQuestion().description[selectedLanguage] }}
+          </p> -->
+
+          <mat-radio-group [formControl]="getAnswerControl(currentQuestionIndex())" class="options-group">
+            <mat-radio-button *ngFor="let option of currentQuestion().options; let j = index"
+                              [value]="j"
+                              class="option-button">
+              {{ option[selectedLanguage] }}
+            </mat-radio-button>
+          </mat-radio-group>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Navigation Buttons -->
+      <div class="navigation-buttons">
+        <button mat-raised-button 
+                type="button"
+                (click)="previousQuestion()"
+                [disabled]="currentQuestionIndex() === 0">
+          &larr; Previous
+        </button>
+
+        <button mat-raised-button 
+                type="button"
+                color="warn"
+                (click)="clearAnswer()">
+          Clear
+        </button>
+
+        <button mat-raised-button 
+                type="button"
+                color="accent"
+                (click)="markForReview()">
+          Mark for Review
+        </button>
+
+        <button mat-raised-button 
+                type="button"
+                color="primary"
+                (click)="saveAndNext()">
+          Save & Next &rarr;
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL (Question Palette) -->
+    <div class="side-panel">
+      <h3>Questions</h3>
+
+      <div class="question-palette">
+        <button type="button"
+                *ngFor="let q of test().questions; let i = index"
+                class="palette-btn"
+                [ngClass]="getQuestionStatusClass(i)"
+                (click)="goToQuestion(i)">
+          {{ i + 1 }}
+        </button>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item">
+          <div class="color-box answered"></div>
+          <span>Answered</span>
+        </div>
+        <div class="legend-item">
+          <div class="color-box not-answered"></div>
+          <span>Not Answered</span>
+        </div>
+        <div class="legend-item">
+          <div class="color-box marked-review"></div>
+          <span>Marked for Review</span>
+        </div>
+        <div class="legend-item">
+          <div class="color-box current"></div>
+          <span>Current Question</span>
+        </div>
+      </div>
+
+      <button mat-raised-button color="primary" class="submit-btn" (click)="submitTest()">
+        Submit Test
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+<!-- LOADING -->
+<div *ngIf="loading()" class="loading-center">
+  <mat-spinner diameter="50"></mat-spinner>
+  <p>Loading test...</p>
+</div>

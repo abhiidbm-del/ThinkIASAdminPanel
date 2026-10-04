@@ -1,0 +1,343 @@
+<div class="manage-programs-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>
+      <i class="fas fa-chalkboard-user"></i>
+      Program Management System
+    </h1>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="openAddForm()">
+        <i class="fas fa-plus"></i> Add New Program
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs Section -->
+  <div class="tabs-container">
+    <div class="tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'all'"
+        (click)="setActiveTab('all')">
+        <i class="fas fa-list"></i>{{ 'All Programs' | t }}<span class="tab-count">{{ getTotalCountForTab('all') }}</span>
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'active'"
+        (click)="setActiveTab('active')">
+        <i class="fas fa-check-circle"></i>
+        Active Programs
+        <span class="tab-count active-count">{{ getTotalCountForTab('active') }}</span>
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'inactive'"
+        (click)="setActiveTab('inactive')">
+        <i class="fas fa-ban"></i>
+        Inactive Programs
+        <span class="tab-count inactive-count">{{ getTotalCountForTab('inactive') }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    <i class="fas fa-check-circle"></i> {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-error">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage | t }}
+  </div>
+
+  <!-- Add/Edit Form Modal -->
+  <ng-template #programFormDialog>
+    <div class="modal-content" *ngIf="showForm">
+      <div class="modal-header">
+        <h2>{{ isEditing ? 'Edit Program' : 'Add New Program' }}</h2>
+        <button class="close-btn" (click)="closeForm()">&times;</button>
+      </div>
+      
+      <form (ngSubmit)="saveProgram()">
+        <div *ngIf="errorMessage" class="form-alert form-alert-error" role="alert"><i class="fas fa-circle-exclamation"></i><span>{{ errorMessage | t }}</span></div>
+        <section class="language-section english-section">
+          <div class="language-section-header"><span class="language-badge">EN</span><div><h3>English Details</h3><p>Enter the primary program information.</p></div></div>
+        <div class="form-group">
+          <label><i class="fas fa-tag"></i> Program Name *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="currentProgram.programName" 
+            name="programName"
+            placeholder="e.g., Public Administration Mentorship Program"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-category"></i> Program Category *</label>
+          <select [(ngModel)]="currentProgram.programCategory" name="programCategory">
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class="fas fa-calendar"></i> Year *</label>
+            <input 
+              type="text" 
+              [(ngModel)]="currentProgram.year" 
+              name="year"
+              placeholder="e.g., 2027, 2026/27"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label><i class="fas fa-rupee-sign"></i> Price *</label>
+            <input 
+              type="number" 
+              [(ngModel)]="currentProgram.price" 
+              name="price"
+              placeholder="e.g., 17999"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class="fas fa-tag"></i> Discounted Price</label>
+            <input 
+              type="number" 
+              [(ngModel)]="currentProgram.discountedPrice" 
+              name="discountedPrice"
+              placeholder="e.g., 26999"
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class="fas fa-calendar-alt"></i>{{ 'Start Date *' | t }}</label>
+            <input 
+              type="date" 
+              [(ngModel)]="startDateInput" 
+              name="startDate"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label><i class="fas fa-calendar-alt"></i>{{ 'End Date *' | t }}</label>
+            <input 
+              type="date" 
+              [(ngModel)]="endDateInput" 
+              name="endDate"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="startDateInput && endDateInput">
+          <label><i class="fas fa-hourglass-half"></i> Calculated Duration</label>
+          <div class="duration-preview">
+            <i class="fas fa-info-circle"></i>
+            {{ calculateDurationPreview() }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-image"></i> Display Image URL *</label>
+          <input 
+            type="url" 
+            [(ngModel)]="currentProgram.displayImage" 
+            name="displayImage"
+            placeholder="https://example.com/image.jpg"
+            (input)="previewImage()"
+            required
+          >
+          <small class="form-hint">Enter a valid image URL (JPG, PNG, etc.)</small>
+        </div>
+
+        <div class="image-preview" *ngIf="imagePreviewUrl">
+          <img [src]="imagePreviewUrl" alt="Preview" (error)="imagePreviewUrl = null">
+          <p>Image Preview</p>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-align-left"></i>{{ 'Description' | t }}</label>
+          <textarea 
+            [(ngModel)]="currentProgram.description" 
+            name="description"
+            rows="3"
+            placeholder="Program description..."
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-list"></i> Features (comma-separated)</label>
+          <input 
+            type="text" 
+            [(ngModel)]="featuresInput" 
+            name="features"
+            placeholder="e.g., Weekly mentorship, Test series, Study material"
+          >
+          <small class="form-hint">Enter features separated by commas</small>
+        </div>
+        </section>
+
+        <section class="language-section hindi-section">
+          <div class="language-section-header"><span class="language-badge">हि</span><div><h3>Hindi Details</h3><p>Fill Hindi copy and image separately from English.</p></div></div>
+          <div class="form-group"><label>Program name (Hindi)</label><input name="programNameHindi" [(ngModel)]="currentProgram.programNameHindi"></div>
+          <div class="form-group"><label>Description (Hindi)</label><textarea name="descriptionHindi" [(ngModel)]="currentProgram.descriptionHindi"></textarea></div>
+          <div class="form-group">
+            <label>Display Image URL (Hindi)</label>
+            <input
+              type="url"
+              [(ngModel)]="currentProgram.displayImageHindi"
+              name="displayImageHindi"
+              placeholder="https://example.com/hindi-image.jpg"
+            >
+          </div>
+          <div class="form-group"><label>Features (Hindi, matching English line order)</label><textarea name="featuresHindiInput" [(ngModel)]="featuresHindiInput" placeholder="एक फीचर प्रति लाइन"></textarea></div>
+        </section>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class="fas fa-sort-numeric-down"></i> Display Order</label>
+            <input 
+              type="number" 
+              [(ngModel)]="currentProgram.order" 
+              name="order"
+              placeholder="0"
+            >
+          </div>
+
+          <div class="form-group">
+            <label><i class="fas fa-toggle-on"></i> Active Status</label>
+            <select [(ngModel)]="currentProgram.isActive" name="isActive">
+              <option [value]="true">{{ 'Active' | t }}</option>
+              <option [value]="false">{{ 'Inactive' | t }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeForm()">{{ 'Cancel' | t }}</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+            <i class="fas" [class.fa-save]="!isEditing" [class.fa-edit]="isEditing"></i>
+            {{ isEditing ? 'Update Program' : 'Create Program' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </ng-template>
+
+  <!-- Display Programs by Category -->
+  <div class="programs-display">
+    <div *ngFor="let category of categories" class="category-section">
+      <div class="category-header">
+        <h2>
+          <i class="fas" 
+             [class.fa-graduation-cap]="category === 'Mentorship Course'"
+             [class.fa-chalkboard-user]="category === 'Optional Mentorship Course'"
+             [class.fa-file-alt]="category === 'Test Series'"
+             [class.fa-pen-ruler]="category === 'Optional Test Series'"
+             [class.fa-pencil-alt]="category === 'Essay'">
+          </i>
+          {{ category }}
+        </h2>
+        <div class="category-stats">
+          <span class="program-count total-count">
+            <i class="fas fa-list"></i> Total: {{ getCountForTab(category, 'all') }}
+          </span>
+          <span class="program-count active-count">
+            <i class="fas fa-check-circle"></i> Active: {{ getCountForTab(category, 'active') }}
+          </span>
+          <span class="program-count inactive-count" *ngIf="getCountForTab(category, 'inactive') > 0">
+            <i class="fas fa-ban"></i> Inactive: {{ getCountForTab(category, 'inactive') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Programs Grid -->
+      <div class="programs-grid" *ngIf="getProgramsByCategoryForTab(category).length > 0">
+        <div class="program-card" [class.inactive-card]="!program.isActive" *ngFor="let program of getProgramsByCategoryForTab(category)">
+          <div class="card-image">
+            <img [src]="program.displayImage" [alt]="program.programName" (error)="handleImageError($event)">
+            <div class="status-badge" [class.active]="program.isActive" [class.inactive]="!program.isActive">
+              {{ (program.isActive ? 'Active' : 'Inactive') | t }}
+            </div>
+            <div class="sale-badge" *ngIf="program.discountedPrice">
+              <i class="fas fa-tag"></i> {{ 'Sale' | t }}
+            </div>
+          </div>
+          <div class="card-body">
+            <h3>{{ program.programName }}</h3>
+            <div class="program-meta">
+              <span class="year-badge">
+                <i class="fas fa-calendar-alt"></i> {{ program.year }}
+              </span>
+              <span class="duration" *ngIf="program.duration">
+                <i class="fas fa-hourglass-half"></i> {{ program.duration }}
+              </span>
+            </div>
+            <div class="date-range" *ngIf="program.startDate && program.endDate">
+              <i class="fas fa-calendar-week"></i>
+              {{ formatDateRange(program.startDate, program.endDate) }}
+            </div>
+            <div class="price-section">
+              <span class="price" *ngIf="program.discountedPrice">
+                <span class="original-price">₹{{ program.discountedPrice | number }}</span>
+                <span class="current-price">₹{{ program.price | number }}</span>
+              </span>
+              <span class="price" *ngIf="!program.discountedPrice">
+                ₹{{ program.price | number }}
+              </span>
+            </div>
+            <p class="description" *ngIf="program.description">{{ program.description | slice:0:100 }}{{ program.description.length > 100 ? '...' : '' }}</p>
+            <div class="features" *ngIf="program.features && program.features.length > 0">
+              <div class="feature-tag" *ngFor="let feature of program.features.slice(0, 3)">
+                <i class="fas fa-check-circle"></i> {{ feature }}
+              </div>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-icon btn-edit" (click)="editProgram(program)" title="Edit Program">
+              <i class="fas fa-edit"></i> {{ 'Edit' | t }}
+            </button>
+            <button class="btn-icon" 
+                    [class.btn-status]="program.isActive" 
+                    [class.btn-activate]="!program.isActive" 
+                    (click)="toggleProgramStatus(program)" 
+                    [title]="program.isActive ? 'Deactivate' : 'Activate'">
+              <i class="fas" [class.fa-eye-slash]="program.isActive" [class.fa-eye]="!program.isActive"></i>
+              {{ program.isActive ? 'Deactivate' : 'Activate' }}
+            </button>
+            <button class="btn-icon btn-delete" (click)="deleteProgram(program._id!)" title="Delete Program">
+              <i class="fas fa-trash"></i> {{ 'Delete' | t }}
+            </button>
+          </div>
+          <!-- Add after card-actions or inside the program card -->
+<div class="batches-wrapper" *ngIf="program._id">
+  <app-admin-batches 
+    [programId]="program._id" 
+    [programName]="program.programName">
+  </app-admin-batches>
+</div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-category" *ngIf="getProgramsByCategoryForTab(category).length === 0">
+        <i class="fas fa-inbox"></i>
+        <p>No {{ activeTab !== 'all' ? activeTab : '' }} programs in this category</p>
+        <button class="btn btn-sm" (click)="openAddForm()">Add Program</button>
+      </div>
+    </div>
+  </div>
+</div>

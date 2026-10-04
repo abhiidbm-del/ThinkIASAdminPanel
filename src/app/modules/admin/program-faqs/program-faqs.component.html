@@ -1,0 +1,65 @@
+<main class="faq-page">
+  <header class="page-header">
+    <div class="title-block">
+      <div class="title-icon"><span>?</span></div>
+      <div>
+        <h1>{{ 'Program FAQs' | t }}</h1>
+        <p>Manage frequently asked questions for every program.</p>
+      </div>
+    </div>
+    <button class="primary-btn" type="button" (click)="edit({programId:filter,order:0,isActive:true})">
+      <span class="button-icon">+</span> Add FAQ
+    </button>
+  </header>
+
+  <p role="alert" class="message error" *ngIf="error">{{ error }}</p>
+  <p role="status" class="message success" *ngIf="message">{{ message }}</p>
+
+  <section class="toolbar">
+    <div>
+      <h2>FAQ library</h2>
+      <p>{{ visible.length }} questions available</p>
+    </div>
+    <label class="filter-field">
+      <span>Filter by program</span>
+      <select [(ngModel)]="filter">
+        <option value="">All programs</option>
+        <option *ngFor="let p of programs" [value]="p._id">{{ p.programName }}</option>
+      </select>
+    </label>
+  </section>
+
+  <form *ngIf="form" class="editor-card" #faqForm="ngForm" (ngSubmit)="faqForm.valid && save()">
+    <div class="editor-header">
+      <div><span class="eyebrow">{{ form._id ? 'UPDATE ENTRY' : 'NEW ENTRY' }}</span><h2>{{ form._id ? 'Edit FAQ' : 'Create FAQ' }}</h2></div>
+      <button class="close-btn" type="button" aria-label="Close" (click)="form=null">&times;</button>
+    </div>
+
+    <div class="form-grid">
+      <label class="full-width">Program
+        <select name="program" [(ngModel)]="form.programId" required>
+          <option value="">Select program</option>
+          <option *ngFor="let p of programs" [value]="p._id">{{ p.programName }}</option>
+        </select>
+      </label>
+      <div class="language-heading">English</div><div class="language-heading hindi-heading">Hindi</div>
+      <label>Question<input name="question" [(ngModel)]="form.question" required maxlength="500" placeholder="Enter the question"></label>
+      <label>Question (Hindi)<input name="questionHindi" [(ngModel)]="form.questionHindi" placeholder="हिंदी में प्रश्न लिखें"></label>
+      <label>Answer<textarea name="answer" [(ngModel)]="form.answer" required rows="5" placeholder="Enter the answer"></textarea></label>
+      <label>Answer (Hindi)<textarea name="answerHindi" [(ngModel)]="form.answerHindi" rows="5" placeholder="हिंदी में उत्तर लिखें"></textarea></label>
+      <label>Display order<input name="order" type="number" min="0" [(ngModel)]="form.order"></label>
+      <label class="active-field"><input name="active" type="checkbox" [(ngModel)]="form.isActive"><span>Active on website</span></label>
+    </div>
+    <div class="form-actions"><button class="secondary-btn" type="button" (click)="form=null">Cancel</button><button class="primary-btn" type="submit" [disabled]="saving || faqForm.invalid">{{ saving ? 'Saving...' : 'Save FAQ' }}</button></div>
+  </form>
+
+  <section *ngIf="!visible.length" class="empty-state"><div class="empty-icon">?</div><h2>No FAQs found</h2><p>Add a question or change the program filter.</p></section>
+
+  <section class="faq-list" *ngIf="visible.length">
+    <article class="faq-card" *ngFor="let faq of visible">
+      <div class="faq-card-top"><span class="program-label">{{ faq.programId?.programName || 'Deleted program' }}</span><span class="status" [class.hidden-status]="!faq.isActive">{{ faq.isActive ? 'Active' : 'Hidden' }}</span></div>
+      <div class="faq-copy"><h3>{{ faq.question }}</h3><p class="hindi-copy" *ngIf="faq.questionHindi">{{ faq.questionHindi }}</p><div class="answer"><span class="answer-label">Answer</span><p>{{ faq.answer }}</p><p class="hindi-copy" *ngIf="faq.answerHindi">{{ faq.answerHindi }}</p></div></div>
+      <div class="faq-footer"><span class="order-label">Order {{ faq.order }}</span><div><button class="edit-btn" type="button" (click)="edit(faq)">Edit</button><button class="delete-btn" type="button" (click)="remove(faq)">Delete</button></div></div>
+    </article>
+  </section>
+</main>

@@ -1,0 +1,178 @@
+<div class="demo-tests-container">
+  <div class="header">
+    <h1>Demo Tests Management</h1>
+    <button mat-raised-button color="primary" (click)="openCreateDemoTestDialog()">
+      <mat-icon>add</mat-icon>
+      Create Demo Test
+    </button>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Search Tests</mat-label>
+      <input matInput [(ngModel)]="searchTerm" (ngModelChange)="filterTests()" placeholder="Search by title...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Filter by Status</mat-label>
+      <mat-select [(value)]="statusFilter" (selectionChange)="filterTests()">
+        <mat-option value="all">All Tests</mat-option>
+        <mat-option value="active">Active Only</mat-option>
+        <mat-option value="inactive">Inactive Only</mat-option>
+      </mat-select>
+      <mat-icon matSuffix>filter_list</mat-icon>
+    </mat-form-field>
+
+    <button mat-stroked-button (click)="loadDemoTests()" [disabled]="loading()">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  </div>
+
+  <div *ngIf="loading()" class="loading">
+    <mat-spinner></mat-spinner>
+    <p>Loading demo tests...</p>
+  </div>
+
+  <div *ngIf="!loading() && filteredTests().length === 0" class="no-tests">
+    <mat-card>
+      <mat-card-content>
+        <mat-icon class="no-tests-icon">quiz</mat-icon>
+        <h3>No demo tests found</h3>
+        <p *ngIf="searchTerm || statusFilter !== 'all'">
+          No tests match your current filters. Try adjusting your search criteria.
+        </p>
+        <p *ngIf="!searchTerm && statusFilter === 'all'">
+          You haven't created any demo tests yet.
+        </p>
+        <button mat-raised-button color="primary" (click)="openCreateDemoTestDialog()">
+          <mat-icon>add</mat-icon>
+          Create Your First Demo Test
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="tests-grid" *ngIf="!loading() && filteredTests().length > 0">
+    <mat-card *ngFor="let test of filteredTests()" class="demo-test-card">
+      <mat-card-header>
+        <mat-card-title>{{ test.title }}</mat-card-title>
+        <mat-card-subtitle>
+          <div class="status-badge" [class.active]="test.isActive" [class.inactive]="!test.isActive">
+            <mat-icon>{{ test.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+            {{ test.isActive ? 'Active' : 'Inactive' }}
+          </div>
+          <div>Duration: {{ test.duration }} minutes</div>
+          <div>Created: {{ test.createdAt | date:'medium' }}</div>
+        </mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <p><strong>Description:</strong> {{ test.description || 'No description' }}</p>
+        <div class="test-details">
+          <div class="detail-item">
+            <mat-icon>quiz</mat-icon>
+            <span><strong>Questions:</strong> {{ test.questionUids?.length || 0 }}</span>
+          </div>
+          <div class="detail-item">
+            <mat-icon>grade</mat-icon>
+            <span><strong>Marks/Question:</strong> {{ test.marksPerQuestion }}</span>
+          </div>
+          <div class="detail-item">
+            <mat-icon>remove</mat-icon>
+            <span><strong>Negative Marks:</strong> {{ test.negativeMarks }}</span>
+          </div>
+          <div class="detail-item">
+            <mat-icon>score</mat-icon>
+            <span><strong>Total Marks:</strong> {{ (test.marksPerQuestion * test.questionUids?.length) || 0 }}</span>
+          </div>
+        </div>
+        
+        <!-- <div class="questions-preview" *ngIf="test.questions && test.questions.length > 0">
+          <h4>Sample Questions ()</h4>
+          <div *ngFor="let question of test.questions.slice(0, 3)" class="question-preview">
+            <div class="question-text" [innerHTML]="question.question?.english || 'Question preview not available'"></div>
+            <div class="question-meta">
+              <span>Correct: {{ getOptionLetter(question.correctAnswer) }}</span>
+              <span>UID: {{ question.uid?.slice(0, 8) }}...</span>
+            </div>
+          </div>
+          <p *ngIf="test.questions.length > 3" class="more-questions">
+            + {{ test.questions.length - 3 }} more questions...
+          </p>
+        </div> -->
+      </mat-card-content>
+      
+      <mat-card-actions align="end">
+        <div class="test-actions">
+          <button mat-button color="primary" (click)="editDemoTest(test)">
+            <mat-icon>edit</mat-icon>
+            Edit/View
+          </button>
+          
+          <button mat-button [color]="test.isActive ? 'warn' : 'accent'" 
+                  (click)="toggleDemoTestStatus(test)">
+            <mat-icon>{{ test.isActive ? 'toggle_off' : 'toggle_on' }}</mat-icon>
+            {{ test.isActive ? 'Deactivate' : 'Activate' }}
+          </button>
+          
+          <button mat-button color="accent" (click)="viewResults(test)">
+            <mat-icon>analytics</mat-icon>
+            Results
+          </button>
+          
+          <button mat-button color="warn" (click)="deleteDemoTest(test._id)">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
+          
+          <!-- <button mat-button color="primary" (click)="previewDemoTest(test)" *ngIf="test.isActive">
+            <mat-icon>visibility</mat-icon>
+            Preview
+          </button> -->
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
+
+<!-- Intro Modal for Demo Tests -->
+<div *ngIf="showIntroModal && selectedTest" class="demo-test-modal-overlay">
+  <div class="demo-test-modal">
+    <div class="modal-header">
+      <mat-icon>info</mat-icon>
+      <h3>Demo Test Introduction</h3>
+      <button class="close-btn" (click)="closeIntroModal()" [disabled]="updatingIntro">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p><strong>Test:</strong> {{ selectedTest.title }}</p>
+
+      <div class="form-group">
+        <label class="ckeditor-label">Introduction Text</label>
+        <ckeditor
+          [editor]="Editor"
+          [config]="editorConfig"
+          [formControl]="introContent"
+          class="ckeditor-full-width">
+        </ckeditor>
+        <small class="form-text">Add introduction/instructions for this demo test. Leave empty to remove.</small>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn secondary" (click)="closeIntroModal()" [disabled]="updatingIntro">
+        Cancel
+      </button>
+
+      <button class="btn primary" (click)="updateIntro()" [disabled]="updatingIntro">
+        <mat-icon *ngIf="!updatingIntro">save</mat-icon>
+        <span *ngIf="updatingIntro" class="spinner"></span>
+        {{ updatingIntro ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,718 @@
+<!-- admin-live-test.component.html -->
+<div class="admin-container">
+
+  
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="header-content">
+      <div class="header-left">
+        <i class="fas fa-video header-icon"></i>
+        <div>
+          <h1>Live Tests</h1>
+          <p class="header-subtitle">Create and manage live test sessions with Google Meet</p>
+        </div>
+      </div>
+      <button 
+        mat-raised-button 
+        color="primary" 
+        class="create-btn"
+        (click)="openCreateDialog()">
+        <i class="fas fa-plus"></i> 
+        <span>New Live Test</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <mat-tab-group [(selectedIndex)]="selectedTab" (selectedIndexChange)="$event === 1 && !submissionsTitle && loadAllSubmissions()" 
+    #tabGroup 
+    class="main-tabs"
+    (selectedTabChange)="onTabChange($event)"
+    [selectedIndex]="selectedTabIndex">
+    
+    <!-- Tests Tab -->
+    <mat-tab label="Tests">
+      <div class="tab-content">
+        
+        <!-- Filters -->
+        <mat-card class="filters-card">
+          <mat-card-content>
+            <div class="filters-grid">
+              <mat-form-field appearance="outline" class="search-field">
+                <mat-label>Search Tests</mat-label>
+                <input 
+                  matInput 
+                  [formControl]="searchControl" 
+                  placeholder="Search by title or subject"
+                  autocomplete="off">
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
+
+              <div class="date-range-group">
+                <mat-form-field appearance="outline" class="date-field">
+                  <mat-label>From</mat-label>
+                  <input 
+                    matInput 
+                    [matDatepicker]="fromPicker" 
+                    [(ngModel)]="fromDate" 
+                    [ngModelOptions]="{standalone: true}" 
+                    (dateChange)="applyDateFilter()">
+                  <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #fromPicker></mat-datepicker>
+                </mat-form-field>
+                
+                <mat-form-field appearance="outline" class="date-field">
+                  <mat-label>To</mat-label>
+                  <input 
+                    matInput 
+                    [matDatepicker]="toPicker" 
+                    [(ngModel)]="toDate" 
+                    [ngModelOptions]="{standalone: true}" 
+                    (dateChange)="applyDateFilter()">
+                  <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #toPicker></mat-datepicker>
+                </mat-form-field>
+                
+                <button 
+                  *ngIf="fromDate || toDate" 
+                  mat-icon-button 
+                  color="warn" 
+                  class="clear-date-btn"
+                  (click)="clearDateFilter()" 
+                  matTooltip="Clear date filters">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <mat-form-field appearance="outline" class="status-field">
+                <mat-label>Status</mat-label>
+                <mat-select 
+                  [(value)]="selectedStatus" 
+                  (selectionChange)="loadTests()">
+                  <mat-option value="">All</mat-option>
+                  <mat-option value="active">Active</mat-option>
+                  <mat-option value="inactive">Inactive</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Loading State -->
+        <div *ngIf="loading()" class="loading-state">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading live tests...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!loading() && tests().length === 0" class="empty-state">
+          <mat-card>
+            <mat-card-content>
+              <div class="empty-content">
+                <i class="fas fa-video-slash empty-icon"></i>
+                <h3>No Live Tests Found</h3>
+                <p class="text-muted">Get started by creating your first live test session.</p>
+                <button mat-raised-button color="primary" (click)="openCreateDialog()">
+                  <i class="fas fa-plus"></i> Create Live Test
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Tests Grid -->
+        <div *ngIf="!loading() && tests().length > 0" class="tests-grid">
+          <mat-card 
+            *ngFor="let test of tests()" 
+            class="test-card"
+            [class.inactive-card]="!test.isActive">
+            
+            <mat-card-header>
+              <mat-card-title>
+                <span class="test-title">
+                  {{ test.title | t:test.titleHi }}
+                  <span class="title-separator" *ngIf="test.titleHi">/</span>
+                  <span class="title-hindi" *ngIf="test.titleHi">{{ test.titleHi }}</span>
+                </span>
+                <span 
+                  class="status-badge" 
+                  [class.active]="test.isActive" 
+                  [class.inactive]="!test.isActive">
+                  <i class="fas" [class.fa-check-circle]="test.isActive" [class.fa-times-circle]="!test.isActive"></i>
+                  {{ test.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </mat-card-title>
+              <mat-card-subtitle>
+                <span class="test-type-badge" [class.full-length]="test.type === 'Full-Length'" [class.sectional]="test.type === 'Sectional'">
+                  {{ test.type }}
+                </span>
+                <span class="subject-badge">{{ test.subject }}</span>
+                <span class="duration-badge">
+                  <i class="far fa-clock"></i> {{ test.duration }} min
+                </span>
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <div class="test-datetime">
+                <div class="datetime-item">
+                  <i class="far fa-calendar-alt"></i>
+                  <span>{{ test.startDateTime | date:'MMM d, y' }}</span>
+                  <span class="time-separator">→</span>
+                  <span>{{ test.endDateTime | date:'MMM d, y' }}</span>
+                </div>
+                <div class="datetime-item">
+                  <i class="far fa-clock"></i>
+                  <span>{{ test.startDateTime | date:'h:mm a' }}</span>
+                  <span class="time-separator">→</span>
+                  <span>{{ test.endDateTime | date:'h:mm a' }}</span>
+                </div>
+              </div>
+
+              <p class="test-description" *ngIf="test.description">
+                {{ test.description | t:test.descriptionHi }}
+                <span class="description-hindi" *ngIf="test.descriptionHi">
+                  / {{ test.descriptionHi }}
+                </span>
+              </p>
+              
+              <div class="test-meta">
+                <div class="meta-item" *ngIf="test.questions?.length">
+                  <i class="fas fa-question-circle"></i>
+                  <span>{{ test.questions?.length }} Questions</span>
+                </div>
+                <div class="meta-item">
+                  <i class="fas fa-users"></i>
+                  <button mat-button (click)="showSubmissions(test)">View submissions ({{test.submissionCount || 0}})</button>
+                </div>
+                <div class="meta-item" *ngIf="test.meetLink">
+                  <i class="fas fa-video"></i>
+                  <span>Meet: {{ test.meetLink }}</span>
+                </div>
+              </div>
+
+              <div class="pdf-links" *ngIf="test.questionPaperPDF || test.questionPaperPDFHi">
+                <a 
+                  *ngIf="test.questionPaperPDF" 
+                  [href]="test.questionPaperPDF" 
+                  target="_blank" 
+                  class="pdf-link english">
+                  <i class="fas fa-file-pdf"></i> English PDF
+                </a>
+                <a 
+                  *ngIf="test.questionPaperPDFHi" 
+                  [href]="test.questionPaperPDFHi" 
+                  target="_blank" 
+                  class="pdf-link hindi">
+                  <i class="fas fa-file-pdf"></i> हिंदी PDF
+                </a>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions align="end">
+              <button mat-button (click)="showSubmissions(test)">{{language.hindi ? 'उत्तर पत्रक देखें' : 'View answer sheets'}} ({{test.submissionCount || 0}})</button>
+              <button mat-button color="accent" (click)="openViewDialog(test)">
+                <i class="fas fa-eye"></i> View
+              </button>
+              <button mat-button color="primary" (click)="openEditDialog(test)">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <button 
+                mat-button 
+                [color]="test.isActive ? 'warn' : 'primary'" 
+                (click)="toggleTestStatus(test)">
+                <i class="fas" [class.fa-eye-slash]="test.isActive" [class.fa-eye]="!test.isActive"></i>
+                {{ test.isActive ? 'Deactivate' : 'Activate' }}
+              </button>
+              <button mat-button (click)="reopenTest(test)">
+                <i class="fas fa-unlock"></i> Reopen for student
+              </button>
+              <button mat-button color="warn" (click)="deleteTest(test)">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+<mat-tab label="Submissions">
+  <section class="tab-content submissions-content">
+    <div class="submissions-header">
+      <div>
+        <h2>{{ submissionsTitle || 'Student Submissions' }}</h2>
+        <p *ngIf="!submissionsLoading" class="submissions-count" role="status"><span class="count-dot"></span> {{ submissions.length }} submissions</p>
+      </div>
+      <button mat-stroked-button class="refresh-submissions-btn" (click)="loadAllSubmissions()" [disabled]="submissionsLoading">
+        <i class="fas fa-sync-alt"></i> All submissions / Refresh
+      </button>
+    </div>
+
+    <p *ngIf="submissionsLoading" class="submission-message">Loading submissions...</p>
+    <p *ngIf="submissionsError" class="submission-message error-message" role="alert">{{ submissionsError }}</p>
+    <p *ngIf="!submissionsLoading && !submissionsError && !submissions.length" class="submission-message">No answer sheets found.</p>
+
+    <div *ngIf="!submissionsLoading && !submissionsError && submissions.length" class="submissions-table-wrapper">
+      <table class="submissions-table">
+        <thead>
+          <tr>
+            <th>Test</th>
+            <th>Student</th>
+            <th>Email</th>
+            <th>Submitted At</th>
+            <th>Language</th>
+            <th>Status</th>
+            <th>File</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of paginatedSubmissions">
+            <td class="primary-cell">{{ item.testId?.title || 'Deleted test' }}</td>
+            <td>{{ item.studentId?.fullName || 'Deleted student' }}</td>
+            <td>{{ item.studentId?.email || '—' }}</td>
+            <td>{{ item.submittedAt | date:'medium' }}</td>
+            <td>{{ item.language === 'hi' ? 'Hindi' : 'English' }}</td>
+            <td><span class="submission-status">{{ item.status || '—' }}</span></td>
+            <td class="file-cell">{{ item.originalName || '—' }}</td>
+            <td>
+              <button
+                *ngIf="item.answerPDF || item.answerPDFKey"
+                mat-stroked-button
+                color="primary"
+                class="view-submission-btn"
+                (click)="openSubmissionFile(item._id)">
+                <i class="fas fa-file-pdf"></i> View PDF
+              </button>
+              <span *ngIf="!item.answerPDF && !item.answerPDFKey">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="!submissionsLoading && !submissionsError && submissions.length > 0" class="submissions-pagination">
+      <span class="pagination-summary">Showing <strong>{{ submissionsRangeStart }}–{{ submissionsRangeEnd }}</strong> of <strong>{{ submissions.length }}</strong></span>
+      <nav *ngIf="submissionsTotalPages > 1" class="pagination-controls" aria-label="Submissions pages">
+        <button type="button" class="page-button page-arrow" aria-label="Previous page" [disabled]="currentSubmissionsPage === 1" (click)="changeSubmissionsPage(currentSubmissionsPage - 1)">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button type="button" class="page-button" *ngFor="let page of submissionsPages" [class.active]="currentSubmissionsPage === page" [attr.aria-current]="currentSubmissionsPage === page ? 'page' : null" (click)="changeSubmissionsPage(page)">
+          {{ page }}
+        </button>
+        <button type="button" class="page-button page-arrow" aria-label="Next page" [disabled]="currentSubmissionsPage === submissionsTotalPages" (click)="changeSubmissionsPage(currentSubmissionsPage + 1)">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </nav>
+    </div>
+  </section>
+</mat-tab>
+  </mat-tab-group>
+</div>
+
+<!-- View Test Dialog -->
+<ng-template #viewTestDialog>
+  <div class="view-dialog-container">
+    <div class="dialog-header gradient-header">
+      <div class="header-content">
+        <i class="fas fa-video header-icon"></i>
+        <div>
+          <h2>{{ viewingTest?.title }}</h2>
+          <p class="header-subtitle" *ngIf="viewingTest?.titleHi">{{ viewingTest?.titleHi }}</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeViewDialog()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="dialog-body">
+      <div class="status-row">
+        <span class="status-tag" [class.active]="viewingTest?.isActive" [class.inactive]="!viewingTest?.isActive">
+          <i class="fas" [class.fa-check-circle]="viewingTest?.isActive" [class.fa-times-circle]="!viewingTest?.isActive"></i>
+          {{ viewingTest?.isActive ? 'Active' : 'Inactive' }}
+        </span>
+        <span class="type-tag" [class.full-length]="viewingTest?.type === 'Full-Length'" [class.sectional]="viewingTest?.type === 'Sectional'">
+          {{ viewingTest?.type }}
+        </span>
+        <span class="subject-tag">{{ viewingTest?.subject }}</span>
+        <span class="duration-tag">
+          <i class="far fa-clock"></i>
+          {{ viewingTest?.duration }} min
+        </span>
+      </div>
+
+      <div class="info-section">
+        <div class="section-header">
+          <i class="far fa-calendar-alt"></i>
+          <h3>Schedule</h3>
+        </div>
+        <div class="datetime-grid">
+          <div class="datetime-item">
+            <span class="label">Start Time</span>
+            <span class="value">{{ viewingTest?.startDateTime | date:'MMM d, y, h:mm a' }}</span>
+          </div>
+          <div class="datetime-item">
+            <span class="label">End Time</span>
+            <span class="value">{{ viewingTest?.endDateTime | date:'MMM d, y, h:mm a' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section" *ngIf="viewingTest?.description">
+        <div class="section-header">
+          <i class="fas fa-align-left"></i>
+          <h3>Description</h3>
+        </div>
+        <div class="description-grid">
+          <div class="desc-box english">
+            <span class="lang-label">English</span>
+            <p>{{ viewingTest?.description || 'Not provided' }}</p>
+          </div>
+          <div class="desc-box hindi" *ngIf="viewingTest?.descriptionHi">
+            <span class="lang-label">हिंदी</span>
+            <p>{{ viewingTest?.descriptionHi }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section" *ngIf="viewingTest?.instructions">
+        <div class="section-header">
+          <i class="fas fa-list"></i>
+          <h3>Instructions</h3>
+        </div>
+        <div class="instructions-box">
+          <p>{{ viewingTest?.instructions }}</p>
+        </div>
+      </div>
+
+      <div class="info-section" *ngIf="viewingTest?.questions?.length">
+        <div class="section-header">
+          <i class="fas fa-question-circle"></i>
+          <h3>Questions ({{ viewingTest?.questions?.length }})</h3>
+        </div>
+        <div class="questions-list">
+          <div *ngFor="let question of viewingTest?.questions; let i = index" class="question-card">
+            <div class="question-number">Q{{ i + 1 }}</div>
+            <div class="question-text">
+              <p class="en">{{ question.questionText }}</p>
+              <p class="hi" *ngIf="question.questionTextHi">{{ question.questionTextHi }}</p>
+              <span class="marks-badge" *ngIf="question.marks">{{ question.marks }} marks</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="viewingTest?.questionPaperPDF || viewingTest?.questionPaperPDFHi" class="info-section">
+        <div class="section-header">
+          <i class="fas fa-file-pdf"></i>
+          <h3>Question Papers</h3>
+        </div>
+        <div class="pdf-grid">
+          <a *ngIf="viewingTest?.questionPaperPDF" [href]="viewingTest?.questionPaperPDF" target="_blank" class="pdf-btn english">
+            <i class="fas fa-file-pdf"></i>
+            <span>English PDF</span>
+            <i class="fas fa-external-link-alt"></i>
+          </a>
+          <a *ngIf="viewingTest?.questionPaperPDFHi" [href]="viewingTest?.questionPaperPDFHi" target="_blank" class="pdf-btn hindi">
+            <i class="fas fa-file-pdf"></i>
+            <span>हिंदी PDF</span>
+            <i class="fas fa-external-link-alt"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="info-section" *ngIf="viewingTest?.meetLink">
+        <div class="section-header">
+          <i class="fas fa-video"></i>
+          <h3>Google Meet</h3>
+        </div>
+        <div class="meet-link-box">
+          <a [href]="viewingTest?.meetLink" target="_blank" class="meet-link">
+            <i class="fas fa-external-link-alt"></i>
+            {{ viewingTest?.meetLink }}
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-footer">
+      <button mat-button class="close-footer-btn" (click)="closeViewDialog()">
+        <i class="fas fa-times"></i> Close
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Create/Edit Test Dialog -->
+<ng-template #testDialog>
+  <div class="form-dialog-container">
+    <div class="dialog-header">
+      <h2>
+        <i class="fas" [class.fa-plus-circle]="!editingTest" [class.fa-edit]="editingTest"></i>
+        {{ editingTest ? 'Edit' : 'Create' }} Live Test
+      </h2>
+      <button class="close-btn" (click)="closeDialog()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="testForm" (ngSubmit)="onSubmit()" class="test-form">
+      <div class="dialog-body form-body">
+        
+        <!-- Basic Information -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <i class="fas fa-info-circle"></i>
+            Basic Information
+          </h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Test Title (English) *</mat-label>
+              <input matInput formControlName="title" placeholder="e.g., GS Paper I — Full-Length Test #12">
+              <mat-error *ngIf="testForm.get('title')?.hasError('required')">Title is required</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Test Title (हिंदी)</mat-label>
+              <input matInput formControlName="titleHi" placeholder="जीएस पेपर I — फुल-लेंथ टेस्ट #12">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row two-column">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Test Type *</mat-label>
+              <mat-select formControlName="type">
+                <mat-option value="Full-Length">Full-Length</mat-option>
+                <mat-option value="Sectional">Sectional</mat-option>
+              </mat-select>
+              <mat-error *ngIf="testForm.get('type')?.hasError('required')">Type is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Subject *</mat-label>
+              <mat-select formControlName="subject">
+                <mat-option value="GS Paper I">GS Paper I</mat-option>
+                <mat-option value="GS Paper II">GS Paper II</mat-option>
+                <mat-option value="GS Paper III">GS Paper III</mat-option>
+                <mat-option value="GS Paper IV">GS Paper IV</mat-option>
+                <mat-option value="Essay Paper">Essay Paper</mat-option>
+                <mat-option value="Optional Paper">Optional Paper</mat-option>
+                <mat-option value="Compulsory Paper">Compulsory Paper</mat-option>
+              </mat-select>
+              <mat-error *ngIf="testForm.get('subject')?.hasError('required')">Subject is required</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description (English)</mat-label>
+              <textarea matInput formControlName="description" rows="2" placeholder="Enter detailed description"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description (हिंदी)</mat-label>
+              <textarea matInput formControlName="descriptionHi" rows="2" placeholder="हिंदी में विवरण दर्ज करें"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Question Paper PDFs -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <i class="fas fa-file-pdf"></i>
+            Question Papers (PDF)
+          </h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>PDF URL (English)</mat-label>
+              <input matInput formControlName="questionPaperPDF" placeholder="https://example.com/question-paper.pdf">
+            </mat-form-field>
+          </div>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>PDF URL (हिंदी)</mat-label>
+              <input matInput formControlName="questionPaperPDFHi" placeholder="https://example.com/hindi-question-paper.pdf">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Questions -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <i class="fas fa-question-circle"></i>
+            Questions
+            <span class="optional-label">(Optional)</span>
+          </h3>
+          
+          <div formArrayName="questions" class="questions-container">
+            <div *ngFor="let q of getQuestionControls(); let i = index" class="question-group" [formGroupName]="i">
+              <div class="question-header">
+                <span class="question-number">Question {{ i + 1 }}</span>
+                <button 
+                  mat-icon-button 
+                  color="warn" 
+                  type="button" 
+                  class="remove-btn"
+                  (click)="removeQuestion(i)"
+                  matTooltip="Remove this question">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+              
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Question Text (English)</mat-label>
+                <textarea matInput formControlName="questionText" rows="2" placeholder="Enter question text"></textarea>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Question Text (हिंदी)</mat-label>
+                <textarea matInput formControlName="questionTextHi" rows="2" placeholder="हिंदी में प्रश्न दर्ज करें"></textarea>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Marks</mat-label>
+                <input matInput type="number" formControlName="marks" min="0" placeholder="e.g., 20">
+              </mat-form-field>
+            </div>
+            
+            <button mat-stroked-button type="button" class="add-question-btn" (click)="addQuestion()">
+              <i class="fas fa-plus"></i> Add Question
+            </button>
+          </div>
+        </div>
+
+        <!-- Google Meet Link -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <i class="fas fa-video"></i>
+            Google Meet
+            <span class="required-label">*</span>
+          </h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Google Meet Link *</mat-label>
+              <input matInput formControlName="meetLink" placeholder="https://meet.google.com/abc-defg-hij">
+              <mat-icon matSuffix>link</mat-icon>
+              <mat-hint>Go to meet.google.com → New Meeting → Copy & paste link here</mat-hint>
+              <mat-error *ngIf="testForm.get('meetLink')?.hasError('required')">Meet link is required</mat-error>
+              <mat-error *ngIf="testForm.get('meetLink')?.hasError('invalidMeetLink')">
+                Invalid format. Use: https://meet.google.com/xxx-xxxx-xxx
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <i class="fas fa-list"></i>
+            Instructions
+          </h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Instructions</mat-label>
+              <textarea matInput formControlName="instructions" rows="3" placeholder="e.g., Bring answer booklet. Camera must be ON throughout."></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Schedule -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <i class="far fa-calendar-alt"></i>
+            Schedule
+            <span class="required-label">*</span>
+          </h3>
+          
+          <div class="form-row two-column">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Start Date & Time *</mat-label>
+              <input 
+                matInput 
+                type="datetime-local" 
+                formControlName="startDateTime" 
+                (change)="onDateTimeChange()">
+              <mat-icon matSuffix>schedule</mat-icon>
+              <mat-error *ngIf="testForm.get('startDateTime')?.hasError('required')">
+                Start time is required
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>End Date & Time *</mat-label>
+              <input 
+                matInput 
+                type="datetime-local" 
+                formControlName="endDateTime" 
+                >
+              <mat-icon matSuffix>schedule</mat-icon>
+              <mat-hint>Must be after start time</mat-hint>
+              <mat-error *ngIf="testForm.get('endDateTime')?.hasError('invalidEndTime')">
+                End time must be after start time
+              </mat-error>
+              <mat-error *ngIf="testForm.get('endDateTime')?.hasError('required')">
+                End time is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="duration-auto">
+            <span class="duration-label">Duration: <strong>{{ calculatedDuration }}</strong></span>
+            <span class="duration-hint">(Auto-calculated from start and end time)</span>
+          </div>
+        </div>
+
+        <!-- Additional Settings -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <i class="fas fa-cog"></i>
+            Additional Settings
+          </h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Display Order</mat-label>
+              <input matInput type="number" formControlName="order" min="0">
+              <mat-hint>Lower numbers appear first</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row" *ngIf="editingTest">
+            <mat-checkbox formControlName="isActive" color="primary">
+              <span class="checkbox-label">Active Test</span>
+              <span class="checkbox-hint">Students can access this live test</span>
+            </mat-checkbox>
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog-footer form-footer">
+        <button mat-button type="button" class="cancel-btn" (click)="closeDialog()">
+          Cancel
+        </button>
+        <button 
+          mat-raised-button 
+          color="primary" 
+          type="submit" 
+          class="submit-btn"
+          [disabled]="!testForm.valid || submitting()">
+          <mat-spinner *ngIf="submitting()" diameter="20"></mat-spinner>
+          <span *ngIf="!submitting()">
+            <i class="fas" [class.fa-plus]="!editingTest" [class.fa-save]="editingTest"></i>
+            {{ editingTest ? 'Update Test' : 'Create Test' }}
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</ng-template>

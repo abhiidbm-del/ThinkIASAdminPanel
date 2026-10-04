@@ -1,0 +1,222 @@
+<div class="live-tests-container">
+  <div class="header">
+    <div>
+      <h1>{{ isAdmin ? (seriesKind() === 'pre' ? 'Manage Prelims Exams' : seriesKind() === 'mains' ? 'Manage Mains Exams' : 'Manage Tests') : 'Upcoming Tests' }}</h1>
+      <p *ngIf="isAdmin && seriesKind()">{{ tests().length }} {{ seriesKind() === 'pre' ? 'Prelims' : 'Mains' }} exams</p>
+    </div>
+    <button *ngIf="isAdmin" mat-raised-button color="primary" (click)="openCreateTestDialog()">
+      <mat-icon>add</mat-icon>
+      Create Test
+    </button>
+  </div>
+
+  <div *ngIf="loading()" class="loading">
+    <mat-spinner></mat-spinner>
+    <p>Loading tests...</p>
+  </div>
+
+  <div class="tests-grid" *ngIf="!loading() && tests().length > 0">
+    <mat-card *ngFor="let test of tests()" class="test-card">
+      <mat-card-header>
+        <mat-card-title>{{ test.title }}</mat-card-title>
+        <mat-card-subtitle>
+          <div><mat-icon aria-hidden="true">event</mat-icon><span>Starts: {{ test.startTime | date:'medium' }}</span></div>
+          <div><mat-icon aria-hidden="true">event_available</mat-icon><span>Ends: {{ test.endTime | date:'medium' }}</span></div>
+          <div><mat-icon aria-hidden="true">schedule</mat-icon><span>Duration: {{ test.duration }} minutes</span></div>
+          <div *ngIf="!isAdmin" [class.available]="canStartTest(test)" [class.ended]="!canStartTest(test)">
+            Status: {{ canStartTest(test) ? 'Available' : 'Not Available' }}
+          </div>
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="test-description"><mat-icon aria-hidden="true">description</mat-icon><div><span>Description</span><p>{{ test.description || 'No description added.' }}</p></div></div>
+        <div class="test-stats">
+          <div class="test-stat"><mat-icon aria-hidden="true">quiz</mat-icon><div><span>Total Questions</span><strong>{{ test.questionUids?.length || test.totalQuestions }}</strong></div></div>
+          <div class="test-stat"><mat-icon aria-hidden="true">star</mat-icon><div><span>Marks Per Question</span><strong>{{ test.marksPerQuestion }}</strong></div></div>
+          <div class="test-stat"><mat-icon aria-hidden="true">remove_circle_outline</mat-icon><div><span>Negative Marks</span><strong>{{ test.negativeMarks }}</strong></div></div>
+          <div class="test-stat max-marks"><mat-icon aria-hidden="true">emoji_events</mat-icon><div><span>Max Marks</span><strong>{{ (test.marksPerQuestion * test.questionUids?.length) || (test.marksPerQuestion * test.totalQuestions)}}</strong></div></div>
+        </div>
+
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <button *ngIf="!isAdmin" mat-raised-button color="primary" (click)="startTest(test)"
+          [disabled]="test.submitted || !canStartTest(test)">
+          {{ test.submitted ? 'Test Submitted' : 'Start Test' }}
+        </button>
+
+
+        <div *ngIf="isAdmin" class="admin-actions">
+          <!-- Download PDF dropdown -->
+          <!-- <div class="download-pdf-container">
+            <button mat-button color="accent" [matMenuTriggerFor]="downloadMenu">
+              <mat-icon>download</mat-icon>
+              Question PDF
+            </button>
+            <mat-menu #downloadMenu="matMenu" xPosition="before">
+              <button mat-menu-item (click)="downloadPdf(test._id, 'en')">
+                <mat-icon>language</mat-icon>
+                English Version
+              </button>
+              <button mat-menu-item (click)="downloadPdf(test._id, 'hi')">
+                <mat-icon>translate</mat-icon>
+                Hindi Version
+              </button>
+            </mat-menu>
+          </div> -->
+
+          <button mat-button color="primary" (click)="editTest(test)">
+            <mat-icon>edit</mat-icon>
+            Edit/View
+          </button>
+          <button mat-button color="warn" (click)="deleteTest(test._id)">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
+          <button mat-button (click)="reopenTest(test)">
+            <mat-icon>lock_open</mat-icon>
+            Reopen for student
+          </button>
+          <button mat-button color="accent" (click)="openVideoLinkModal(test)" [disabled]="!canAddVideoLink(test)"
+            *ngIf="isAdmin">
+            <mat-icon>{{ test.videoLink ? 'edit' : 'videocam' }}</mat-icon>
+            {{ test.videoLink ? 'Edit Video' : 'Add Video' }}
+          </button>
+
+          <button mat-button color="primary" (click)="openVideoInNewTab(test)" *ngIf="test.videoLink">
+            <mat-icon>play_circle</mat-icon>
+            Watch Video
+          </button>
+
+          <button mat-button color="primary" (click)="openViewIntroModal(test)" *ngIf="test.introPage">
+  <mat-icon>visibility</mat-icon>
+  View Intro
+</button>
+
+          <button mat-button color="accent" (click)="openIntroModal(test)" *ngIf="isAdmin">
+  <mat-icon>{{ test.introPage ? 'edit' : 'add_circle' }}</mat-icon>
+  {{ test.introPage ? 'Edit Intro' : 'Add Intro' }}
+</button>
+          
+          <!-- <button mat-button color="accent" (click)="viewResults(test._id)">
+            <mat-icon>analytics</mat-icon>
+            Results
+          </button> -->
+        </div>
+      </mat-card-actions>
+
+      <!-- Loading indicator for PDF download -->
+      <div *ngIf="pdfDownloading() === test._id" class="pdf-loading-overlay">
+        <mat-spinner diameter="30"></mat-spinner>
+        <span>Generating PDF...</span>
+      </div>
+    </mat-card>
+  </div>
+
+  <div *ngIf="!loading() && tests().length === 0" class="no-tests">
+    <mat-card>
+      <mat-card-content>
+        <p>No tests available at the moment.</p>
+        <button *ngIf="isAdmin" mat-button color="primary" (click)="openCreateTestDialog()">
+          Create your first test
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<!-- Update the modal to use regular property binding -->
+<div *ngIf="showVideoLinkModal && selectedTest" class="video-link-modal-overlay">
+  <div class="video-link-modal">
+    <div class="video-link-modal-header">
+      <mat-icon>videocam</mat-icon>
+      <h3>{{ selectedTest.videoLink ? 'Edit' : 'Add' }} Video Link</h3>
+      <button class="close-btn" (click)="closeVideoLinkModal()" [disabled]="updatingVideoLink">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="video-link-modal-body">
+      <p><strong>Test:</strong> {{ selectedTest.title }}</p>
+
+      <div class="form-group">
+        <label>Video URL (YouTube, Google Drive, etc.)</label>
+        <input #videoLinkInput type="url" [(ngModel)]="videoLinkInputValue"
+          placeholder="https://www.youtube.com/watch?v=..." class="form-control" [disabled]="updatingVideoLink">
+        <small class="form-text">Leave empty to remove video link</small>
+      </div>
+    </div>
+
+    <div class="video-link-modal-footer">
+      <button class="btn secondary" (click)="closeVideoLinkModal()" [disabled]="updatingVideoLink">
+        Cancel
+      </button>
+
+      <button class="btn primary" (click)="updateVideoLink()" [disabled]="updatingVideoLink">
+        <mat-icon *ngIf="!updatingVideoLink">save</mat-icon>
+        <span *ngIf="updatingVideoLink" class="spinner"></span>
+        {{ updatingVideoLink ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showIntroModal && selectedTest" class="video-link-modal-overlay">
+  <div class="video-link-modal">
+    <div class="video-link-modal-header">
+      <mat-icon>{{ selectedTest.intro ? 'edit' : 'add_circle' }}</mat-icon>
+      <h3>{{ selectedTest.intro ? 'Edit' : 'Add' }} Introduction</h3>
+      <button class="close-btn" (click)="closeIntroModal()" [disabled]="updatingIntro">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="video-link-modal-body">
+      <p><strong>Test:</strong> {{ selectedTest.title }}</p>
+
+      <div class="form-group">
+        <label class="ckeditor-label">Introduction Text *</label>
+        <ckeditor
+          [editor]="Editor"
+          [config]="editorConfig"
+          [formControl]="introContent"
+          class="ckeditor-full-width">
+        </ckeditor>
+        <small class="form-text">Add introduction/instructions for this test. Leave empty to remove.</small>
+      </div>
+    </div>
+
+    <div class="video-link-modal-footer">
+      <button class="btn secondary" (click)="closeIntroModal()" [disabled]="updatingIntro">
+        Cancel
+      </button>
+
+      <button class="btn primary" (click)="updateIntro()" [disabled]="updatingIntro">
+        <mat-icon *ngIf="!updatingIntro">save</mat-icon>
+        <span *ngIf="updatingIntro" class="spinner"></span>
+        {{ updatingIntro ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showViewIntroModal && selectedTest" class="video-link-modal-overlay">
+  <div class="video-link-modal view-intro-modal">
+    <div class="video-link-modal-header">
+      <mat-icon>visibility</mat-icon>
+      <h3>Introduction - {{ selectedTest.title }}</h3>
+      <button class="close-btn" (click)="closeViewIntroModal()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="video-link-modal-body intro-content-container">
+      <div class="intro-content" [innerHTML]="getSafeIntroHtml(selectedTest.introPage)"></div>
+    </div>
+
+    <div class="video-link-modal-footer">
+      <button class="btn secondary" (click)="closeViewIntroModal()">
+        Close
+      </button>
+    </div>
+  </div>
+</div>

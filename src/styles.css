@@ -1,0 +1,270 @@
+/* Keep Angular Material overlays above the fixed/sticky application header. */
+.cdk-overlay-container {
+  z-index: 3000 !important;
+}
+
+/* Component modals render below the app shell's scoped styles, so keep them above the header globally. */
+.modal,
+.loading-overlay,
+.modal-overlay,
+.dialog-overlay,
+.custom-dialog-overlay {
+  z-index: 4000 !important;
+}
+
+/* Shared popup sizing: match the Manage Plans editor across admin sections. */
+body :where(.modal, .overlay, .dialog-overlay, .status-modal-backdrop) {
+  top: 58px;
+  bottom: 0;
+  align-items: flex-start;
+  overflow-y: auto;
+  padding: 16px;
+  z-index: 4000 !important;
+}
+
+body :where(.modal-content, .editor, .dialog-container, .dialog-panel, .status-modal, .modal-dialog) {
+  width: min(920px, calc(100vw - 32px));
+  max-width: 920px;
+  max-height: calc(100vh - 90px);
+  margin: 0 auto;
+  overflow-y: auto;
+}
+
+@media (max-width: 600px) {
+  body :where(.modal, .overlay, .dialog-overlay, .status-modal-backdrop) { padding: 10px; }
+  body :where(.modal-content, .editor, .dialog-container, .dialog-panel, .status-modal, .modal-dialog) {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 78px);
+  }
+}
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: #f4f7fb;
+  color: #172b4d;
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Shared admin visual language */
+:root {
+  --admin-ink: #172b4d;
+  --admin-muted: #6b7a90;
+  --admin-navy: #1c365e;
+  --admin-blue: #3478b5;
+  --admin-orange: #e8793d;
+  --admin-canvas: #f4f7fb;
+  --admin-paper: #ffffff;
+  --admin-line: #e2e9f1;
+  --admin-radius: 12px;
+  --admin-section-radius: 16px;
+}
+
+/* Consistent rounded surfaces across admin sections */
+.content-wrapper :where(section, article, form, .card, .panel, .listing-section, .table-container, .form-card, .editor-card, .editor-panel, .applications-panel, .faq-card, .language-section, .paper-display, .form-section, .preview-section, .syllabus-display-section) {
+  border-radius: var(--admin-section-radius);
+}
+
+.content-wrapper :where(.table-container, .listing-section, .form-card, .editor-card, .editor-panel, .applications-panel, .faq-card, .preview-section, .syllabus-display-section) {
+  overflow: hidden;
+}
+
+body button,
+body input,
+body textarea,
+body select {
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+}
+
+body input,
+body textarea,
+body select {
+  color: var(--admin-ink);
+  background: var(--admin-paper);
+}
+
+body input:focus,
+body textarea:focus,
+body select:focus {
+  outline: 0;
+  border-color: #6485a9;
+  box-shadow: 0 0 0 3px rgba(100, 133, 169, .13);
+}
+
+body button:not([mat-icon-button]) {
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+body button:not([mat-icon-button]):hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* Utility Classes */
+.full-width {
+  width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+
+/* Material Overrides */
+.mat-toolbar {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.mat-card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mat-sidenav {
+    width: 200px !important;
+  }
+  
+  .mat-toolbar span {
+    font-size: 14px;
+  }
+}
+
+.create-test-dialog-panel {
+  max-height: calc(100vh - 24px) !important;
+}
+
+.create-test-dialog-panel .mat-mdc-dialog-container,
+.create-test-dialog-panel .mat-dialog-container,
+.create-test-dialog-panel .mat-mdc-dialog-surface {
+  padding: 0 !important;
+  border-radius: 12px;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: calc(100vh - 24px) !important;
+}
+
+.manage-plan-dialog-panel .mat-mdc-dialog-surface,
+.manage-program-dialog-panel .mat-mdc-dialog-surface,
+.meeting-create-dialog-panel .mat-mdc-dialog-surface {
+  padding: 0 !important;
+  border-radius: 16px;
+  overflow: hidden !important;
+}
+
+.create-test-dialog-panel .mat-mdc-dialog-component-host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.create-test-dialog-panel .mat-mdc-dialog-content,
+.create-test-dialog-panel .mat-dialog-content {
+  max-height: none !important;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.create-test-dialog-panel .mat-mdc-dialog-actions,
+.create-test-dialog-panel .mat-dialog-actions {
+  flex-shrink: 0;
+  margin: 0 !important;
+}
+
+/* Add these to your global styles.css */
+.success-snackbar {
+  background: #4caf50 !important;
+  color: white !important;
+  font-weight: 500;
+}
+
+.error-snackbar {
+  background: #f44336 !important;
+  color: white !important;
+  font-weight: 500;
+}
+
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  border-radius: 12px !important;
+}
+
+/* Tag dropdowns render in the global CDK overlay, outside component-scoped CSS. */
+.question-tags-panel {
+  max-height: 360px !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(23, 43, 77, 0.2) !important;
+  z-index: 4001 !important;
+}
+
+.cdk-overlay-pane:has(.question-tags-panel) {
+  z-index: 4001 !important;
+}
+
+.cdk-overlay-connected-position-bounding-box:has(.question-tags-panel) {
+  z-index: 4001 !important;
+}
+
+.question-correct-answer-panel:not(.question-tags-panel) {
+  min-width: 180px !important;
+  max-height: 240px !important;
+  padding: 4px 0 !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(23, 43, 77, 0.2) !important;
+  z-index: 4001 !important;
+}
+
+.cdk-overlay-pane:has(.question-correct-answer-panel),
+.cdk-overlay-connected-position-bounding-box:has(.question-correct-answer-panel) {
+  z-index: 4001 !important;
+}
+
+.question-tags-panel .tag-search-container {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: block;
+  padding: 10px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e9f1;
+}
+
+.question-tags-panel .tag-search-field {
+  width: 100%;
+  margin: 0;
+}
+
+.question-tags-panel .mat-mdc-option {
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.question-tags-panel .tag-option-content {
+  min-width: 0;
+  gap: 12px;
+}
+
+.question-tags-panel .tag-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

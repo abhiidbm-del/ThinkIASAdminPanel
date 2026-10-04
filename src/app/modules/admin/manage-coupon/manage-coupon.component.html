@@ -1,0 +1,489 @@
+<!-- src/app/modules/admin/manage-coupon/manage-coupon.component.html -->
+<div class="container">
+  <h2>Coupon Management</h2>
+
+  <!-- Action Bar -->
+  <div class="action-bar">
+    <button class="btn btn-primary" (click)="showCreateFormToggle()">
+      <mat-icon>add</mat-icon>
+      New Coupon
+    </button>
+    
+    <!-- Quick One-Time Coupon Generator -->
+    <div class="quick-generator">
+      <h4>Quick Generate One-Time Coupon</h4>
+      <div class="generator-controls">
+        <div class="input-group">
+          <label for="quickDays"><strong>Validity Days:</strong></label>
+          <input 
+            id="quickDays"
+            type="number" 
+            [(ngModel)]="quickCoupon.days" 
+            placeholder="e.g. 30" 
+            min="1"
+            class="days-input">
+        </div>
+        
+        <div class="input-group">
+          <label for="quickPlan"><strong>Select Plan:</strong></label>
+          <select id="quickPlan" [(ngModel)]="quickCoupon.plan" class="plan-select">
+            <option value="">All Plans</option>
+            <option *ngFor="let plan of plans" [value]="plan.id">{{plan.name}}</option>
+          </select>
+        </div>
+
+        <div class="percentage-input">
+          <label for="quickDiscount"><strong>Discount:</strong></label>
+          <div class="input-wrapper">
+            <input 
+              id="quickDiscount"
+              type="number" 
+              [(ngModel)]="quickCoupon.discountValue" 
+              placeholder="50" 
+              min="1" 
+              max="100"
+              class="discount-input">
+            <span>%</span>
+          </div>
+        </div>
+
+        <button 
+          class="btn btn-success" 
+          (click)="generateQuickCoupon()"
+          [disabled]="!quickCoupon.days || !quickCoupon.discountValue">
+          <mat-icon>bolt</mat-icon>
+          Generate {{ quickCoupon.discountValue === 100 ? 'Free' : quickCoupon.discountValue + '%' }} Coupon
+        </button>
+      </div>
+      <small class="helper-text">
+        <mat-icon>info</mat-icon>
+        Generated coupons are one-time use per user
+      </small>
+    </div>
+  </div>
+
+  <!-- Create Form -->
+  <div class="form-card" *ngIf="showCreateForm && !editingCoupon">
+    <h3>
+      <mat-icon>add_circle</mat-icon>
+      Create New Coupon
+    </h3>
+    
+    <div class="form-grid">
+      <!-- Coupon Code -->
+      <div class="form-group">
+        <label>
+          <mat-icon>code</mat-icon>
+          Coupon Code
+        </label>
+        <input 
+          type="text" 
+          [(ngModel)]="newCoupon.code"
+          placeholder="e.g. SAVE20 (leave empty for auto-generate)"
+          maxlength="20">
+        <small>
+          <mat-icon>info</mat-icon>
+          Uppercase letters and numbers
+        </small>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label>
+          <mat-icon>description</mat-icon>
+          Description
+        </label>
+        <input 
+          type="text" 
+          [(ngModel)]="newCoupon.description"
+          placeholder="Brief description">
+      </div>
+
+      <!-- Discount Type -->
+      <div class="form-group">
+        <label>
+          <mat-icon>percent</mat-icon>
+          Discount Type
+        </label>
+        <select [(ngModel)]="newCoupon.discountType">
+          <option value="percentage">Percentage (%)</option>
+          <option value="fixed">Fixed (₹)</option>
+        </select>
+      </div>
+
+      <!-- Discount Value -->
+      <div class="form-group">
+        <label>
+          <mat-icon>local_offer</mat-icon>
+          Discount Value
+        </label>
+        <input 
+          type="number" 
+          [(ngModel)]="newCoupon.discountValue"
+          [min]="1"
+          [max]="newCoupon.discountType === 'percentage' ? 100 : null">
+        <small *ngIf="newCoupon.discountType === 'percentage' && newCoupon.discountValue === 100">
+          <mat-icon>stars</mat-icon>
+          100% = Free coupon
+        </small>
+      </div>
+
+      <!-- One-Time Per User Checkbox -->
+      <div class="form-group checkbox">
+        <label>
+          <input 
+            type="checkbox" 
+            [(ngModel)]="newCoupon.isOneTimePerUser">
+          <mat-icon>person</mat-icon>
+          One-Time Use Per User
+        </label>
+        <small>
+          <mat-icon>info</mat-icon>
+          Each user can use this coupon only once
+        </small>
+      </div>
+
+      <!-- Applicable Plans -->
+      <div class="form-group">
+        <label>
+          <mat-icon>apps</mat-icon>
+          Applicable Plans
+        </label>
+        <div class="checkbox-group"><label *ngFor="let plan of plans"><input type="checkbox" [checked]="newCoupon.applicablePlans.includes(plan.id)" (change)="onPlanCheckboxChange(plan.id, $event, false)">{{plan.name}}</label></div>
+        <small>
+          <mat-icon>info</mat-icon>
+          Leave unchecked for all plans
+        </small>
+      </div>
+
+      <!-- Per User Limit (disabled for one-time coupons) -->
+      <div class="form-group">
+        <label>
+          <mat-icon>group</mat-icon>
+          Per User Limit
+        </label>
+        <input 
+          type="number" 
+          [(ngModel)]="newCoupon.perUserLimit"
+          [disabled]="newCoupon.isOneTimePerUser"
+          min="1">
+        <small *ngIf="newCoupon.isOneTimePerUser">
+          <mat-icon>check_circle</mat-icon>
+          One-time coupons are limited to 1 use per user
+        </small>
+        <small *ngIf="!newCoupon.isOneTimePerUser">
+          <mat-icon>info</mat-icon>
+          How many times per user
+        </small>
+      </div>
+
+      <!-- Max Total Uses -->
+      <div class="form-group">
+        <label>
+          <mat-icon>repeat</mat-icon>
+          Max Total Uses
+        </label>
+        <input 
+          type="number" 
+          [(ngModel)]="newCoupon.maxUses"
+          min="1"
+          placeholder="Leave empty for unlimited">
+        <small>
+          <mat-icon>info</mat-icon>
+          Leave empty for unlimited uses
+        </small>
+      </div>
+
+      <!-- Valid Until -->
+      <div class="form-group">
+        <label>
+          <mat-icon>event</mat-icon>
+          Valid Until
+        </label>
+        <input 
+          type="date" 
+          [(ngModel)]="newCoupon.validUntil">
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button class="btn btn-secondary" (click)="cancelCreate()">
+        <mat-icon>cancel</mat-icon>
+        Cancel
+      </button>
+      <button class="btn btn-primary" (click)="createCoupon()">
+        <mat-icon>save</mat-icon>
+        Create Coupon
+      </button>
+    </div>
+  </div>
+
+  <!-- Edit Form -->
+  <div class="form-card" *ngIf="editingCoupon">
+    <h3>
+      <mat-icon>edit</mat-icon>
+      Edit Coupon
+    </h3>
+    
+    <div class="form-grid">
+      <!-- Coupon Code -->
+      <div class="form-group">
+        <label>
+          <mat-icon>code</mat-icon>
+          Coupon Code
+        </label>
+        <input 
+          type="text" 
+          [(ngModel)]="editingCoupon.code"
+          placeholder="e.g. SAVE20">
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label>
+          <mat-icon>description</mat-icon>
+          Description
+        </label>
+        <input 
+          type="text" 
+          [(ngModel)]="editingCoupon.description"
+          placeholder="Brief description">
+      </div>
+
+      <!-- Discount Type -->
+      <div class="form-group">
+        <label>
+          <mat-icon>percent</mat-icon>
+          Discount Type
+        </label>
+        <select [(ngModel)]="editingCoupon.discountType">
+          <option value="percentage">Percentage (%)</option>
+          <option value="fixed">Fixed (₹)</option>
+        </select>
+      </div>
+
+      <!-- Discount Value -->
+      <div class="form-group">
+        <label>
+          <mat-icon>local_offer</mat-icon>
+          Discount Value
+        </label>
+        <input 
+          type="number" 
+          [(ngModel)]="editingCoupon.discountValue"
+          [min]="1"
+          [max]="editingCoupon.discountType === 'percentage' ? 100 : null">
+      </div>
+
+      <!-- One-Time Per User Badge (read-only) -->
+      <div class="form-group" *ngIf="editingCoupon.isOneTimePerUser">
+        <label>
+          <mat-icon>person</mat-icon>
+          Coupon Type
+        </label>
+        <div class="badge one-time">
+          <mat-icon>verified_user</mat-icon>
+          One-Time Use Per User
+        </div>
+        <small>
+          <mat-icon>info</mat-icon>
+          This setting cannot be changed
+        </small>
+      </div>
+
+      <!-- Applicable Plans -->
+      <div class="form-group">
+        <label>
+          <mat-icon>apps</mat-icon>
+          Applicable Plans
+        </label>
+        <div class="checkbox-group"><label *ngFor="let plan of plans"><input type="checkbox" [checked]="editingCoupon.applicablePlans.includes(plan.id)" (change)="onPlanCheckboxChange(plan.id, $event, true)">{{plan.name}}</label></div>
+        <small>
+          <mat-icon>info</mat-icon>
+          Leave unchecked for all plans
+        </small>
+      </div>
+
+      <!-- Per User Limit (disabled for one-time coupons) -->
+      <div class="form-group">
+        <label>
+          <mat-icon>group</mat-icon>
+          Per User Limit
+        </label>
+        <input 
+          type="number" 
+          [(ngModel)]="editingCoupon.perUserLimit"
+          [disabled]="editingCoupon.isOneTimePerUser"
+          min="1">
+        <small *ngIf="editingCoupon.isOneTimePerUser">
+          <mat-icon>check_circle</mat-icon>
+          One-time coupons are limited to 1 use per user
+        </small>
+      </div>
+
+      <!-- Max Total Uses -->
+      <div class="form-group">
+        <label>
+          <mat-icon>repeat</mat-icon>
+          Max Total Uses
+        </label>
+        <input 
+          type="number" 
+          [(ngModel)]="editingCoupon.maxUses"
+          min="1"
+          placeholder="Leave empty for unlimited">
+      </div>
+
+      <!-- Valid Until -->
+      <div class="form-group">
+        <label>
+          <mat-icon>event</mat-icon>
+          Valid Until
+        </label>
+        <input 
+          type="date" 
+          [(ngModel)]="editingCoupon.validUntil">
+      </div>
+
+      <!-- Active Status -->
+      <div class="form-group checkbox">
+        <label>
+          <input type="checkbox" [(ngModel)]="editingCoupon.isActive">
+          <mat-icon>power_settings_new</mat-icon>
+          Active
+        </label>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button class="btn btn-secondary" (click)="cancelEdit()">
+        <mat-icon>cancel</mat-icon>
+        Cancel
+      </button>
+      <button class="btn btn-primary" (click)="updateCoupon()">
+        <mat-icon>update</mat-icon>
+        Update Coupon
+      </button>
+    </div>
+  </div>
+
+  <!-- Coupons List -->
+  <div class="coupons-list">
+    <h3>
+      <mat-icon>local_offer</mat-icon>
+      Coupons ({{ coupons.length }})
+    </h3>
+    
+    <div *ngIf="loading" class="text-center p-4">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading coupons...</p>
+    </div>
+
+    <div *ngIf="!loading && coupons.length === 0" class="text-center p-4">
+      <mat-icon>inbox</mat-icon>
+      <p>No coupons found.</p>
+      <button class="btn btn-primary" (click)="showCreateFormToggle()">
+        <mat-icon>add</mat-icon>
+        Create First Coupon
+      </button>
+    </div>
+
+    <table *ngIf="!loading && coupons.length > 0">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Discount</th>
+          <th>Type</th>
+          <th>Plans</th>
+          <th>Usage</th>
+          <th>Valid Until</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let coupon of coupons">
+          <td>
+            <div class="code-with-copy">
+              <strong>{{ coupon.code }}</strong>
+              <button 
+                class="copy-btn" 
+                (click)="copyToClipboard(coupon.code)" 
+                matTooltip="Copy code"
+                [class.copied]="copiedCode === coupon.code">
+                <mat-icon>{{ copiedCode === coupon.code ? 'check' : 'content_copy' }}</mat-icon>
+              </button>
+            </div>
+            <div class="text-small">{{ coupon.description }}</div>
+          </td>
+          <td>
+            <span class="discount-badge">{{ getDiscountDisplay(coupon) }}</span>
+          </td>
+          <td>
+            <span *ngIf="coupon.isOneTimePerUser" class="badge one-time">
+              <mat-icon>{{ coupon.discountValue === 100 ? 'stars' : 'person' }}</mat-icon>
+              {{ coupon.discountValue === 100 ? 'FREE' : 'ONE-TIME' }}
+            </span>
+            <span *ngIf="!coupon.isOneTimePerUser" class="badge regular">
+              <mat-icon>repeat</mat-icon>
+              REGULAR
+            </span>
+            <div class="text-small">
+              <mat-icon>group</mat-icon>
+              Per user: {{ coupon.perUserLimit }}x
+            </div>
+          </td>
+          <td>
+            <span *ngIf="!coupon.applicablePlans?.length">
+              <mat-icon>apps</mat-icon>
+              All Plans
+            </span>
+            <span *ngFor="let plan of coupon.applicablePlans" class="plan-badge">
+              <!-- <mat-icon>{{ getPlanIcon(plan) }}</mat-icon> -->
+              {{ getPlanName(plan) }}
+            </span>
+          </td>
+          <td>
+            <div class="usage-indicator">
+              <mat-icon>analytics</mat-icon>
+              {{ coupon.usedCount || 0 }} / {{ coupon.maxUses || '∞' }}
+            </div>
+          </td>
+          <td>
+            <div class="date-display" [class.text-danger]="isExpired(coupon.validUntil)">
+              <mat-icon>event</mat-icon>
+              {{ coupon.validUntil | date }}
+            </div>
+          </td>
+          <td>
+            <div class="toggle-switch">
+              <label class="switch">
+                <input 
+                  type="checkbox" 
+                  [checked]="coupon.isActive" 
+                  (change)="toggleStatus(coupon)">
+                <span class="slider round"></span>
+              </label>
+              <span class="status-text" [class.active]="coupon.isActive">
+                <mat-icon>{{ coupon.isActive ? 'check_circle' : 'cancel' }}</mat-icon>
+                {{ coupon.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon" (click)="editCoupon(coupon)" matTooltip="Edit coupon">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button class="btn-icon" (click)="coupon._id ? deleteCoupon(coupon._id) : null" matTooltip="Delete coupon">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
