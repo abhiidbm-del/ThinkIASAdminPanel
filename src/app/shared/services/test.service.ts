@@ -260,10 +260,8 @@ export class TestService {
     return this.http.post<Test>(`${this.apiUrl}/admin/tests`, testData);
   }
 
-  getAllTests(seriesKind?: 'pre' | 'mains'): Observable<Test[]> {
-    return this.http.get<Test[]>(`${this.apiUrl}/admin/tests`, {
-      params: seriesKind ? { seriesKind } : {}
-    });
+  getAllTests(): Observable<Test[]> {
+    return this.http.get<Test[]>(`${this.apiUrl}/admin/tests`);
   }
 
   updateTest(id: string, testData: any): Observable<Test> {

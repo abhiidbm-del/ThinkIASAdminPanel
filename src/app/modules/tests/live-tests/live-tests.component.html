@@ -1,9 +1,6 @@
 <div class="live-tests-container">
   <div class="header">
-    <div>
-      <h1>{{ isAdmin ? (seriesKind() === 'pre' ? 'Manage Prelims Exams' : seriesKind() === 'mains' ? 'Manage Mains Exams' : 'Manage Tests') : 'Upcoming Tests' }}</h1>
-      <p *ngIf="isAdmin && seriesKind()">{{ tests().length }} {{ seriesKind() === 'pre' ? 'Prelims' : 'Mains' }} exams</p>
-    </div>
+    <h1>{{ isAdmin ? 'Manage Tests' : 'Upcoming Tests' }}</h1>
     <button *ngIf="isAdmin" mat-raised-button color="primary" (click)="openCreateTestDialog()">
       <mat-icon>add</mat-icon>
       Create Test

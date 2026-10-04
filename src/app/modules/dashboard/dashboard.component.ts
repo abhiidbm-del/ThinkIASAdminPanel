@@ -40,15 +40,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
   recentResults = signal<any[]>([]);
   completedTestsCount = signal<number>(0);
   totalTestsCount = signal<number>(0);
-  prelimsTestsCount = signal<number>(0);
-  mainsTestsCount = signal<number>(0);
-  questionBankCount = signal<number>(0);
-  newSupportRequestsCount = signal<number>(0);
-  openSupportRequestsCount = signal<number>(0);
-  quizAttemptsCount = signal<number>(0);
-  recentQuizAttemptsCount = signal<number>(0);
-  demoAttemptsCount = signal<number>(0);
-  recentDemoAttemptsCount = signal<number>(0);
   totalStudentsCount = signal<number>(0);
   totalResultsCount = signal<number>(0);
   
@@ -152,7 +143,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
     
     this.testService.getPlatformStatistics().subscribe({
       next: (stats) => {
-        if (![stats?.totalStudents, stats?.totalResults, stats?.totalTests, stats?.prelimsTests, stats?.mainsTests, stats?.totalQuestions, stats?.newSupportRequests, stats?.openSupportRequests, stats?.quizAttempts, stats?.recentQuizAttempts, stats?.demoAttempts, stats?.recentDemoAttempts].every(value => Number.isInteger(value) && value >= 0)) {
+        if (![stats?.totalStudents, stats?.totalResults, stats?.totalTests].every(value => Number.isInteger(value) && value >= 0)) {
           this.statisticsError.set('Dashboard counts could not be loaded. Please retry.');
           this.loading.set(false);
           return;
@@ -160,15 +151,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.totalStudentsCount.set(stats.totalStudents);
         this.totalResultsCount.set(stats.totalResults);
         this.totalTestsCount.set(stats.totalTests);
-        this.prelimsTestsCount.set(stats.prelimsTests);
-        this.mainsTestsCount.set(stats.mainsTests);
-        this.questionBankCount.set(stats.totalQuestions);
-        this.newSupportRequestsCount.set(stats.newSupportRequests);
-        this.openSupportRequestsCount.set(stats.openSupportRequests);
-        this.quizAttemptsCount.set(stats.quizAttempts);
-        this.recentQuizAttemptsCount.set(stats.recentQuizAttempts);
-        this.demoAttemptsCount.set(stats.demoAttempts);
-        this.recentDemoAttemptsCount.set(stats.recentDemoAttempts);
         this.loading.set(false);
         this.loadAdminChartData();
       },

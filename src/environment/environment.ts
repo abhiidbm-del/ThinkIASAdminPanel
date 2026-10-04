@@ -1,7 +1,7 @@
 export const environment = {
-  iUrl: 'http://localhost:5000/api',
+  //iUrl: 'http://localhost:5000/api',
   apiUrl: 'http://localhost:5000/api',
-    //   production: false,
+  //   production: false,
 
     // apiUrl: 'https://bytestech.online/api',
 

@@ -117,10 +117,10 @@
             {{ test.isActive ? 'Deactivate' : 'Activate' }}
           </button>
           
-          <button mat-button color="accent" (click)="viewResults(test)">
+          <!-- <button mat-button color="accent" (click)="viewResults(test)" *ngIf="test.isActive">
             <mat-icon>analytics</mat-icon>
             Results
-          </button>
+          </button> -->
           
           <button mat-button color="warn" (click)="deleteDemoTest(test._id)">
             <mat-icon>delete</mat-icon>

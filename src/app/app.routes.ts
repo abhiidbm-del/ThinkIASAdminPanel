@@ -10,10 +10,10 @@ import { ManageCouponComponent } from './modules/admin/manage-coupon/manage-coup
 export const routes: Routes = [
   {path:'program-faqs',loadComponent:()=>import('./modules/admin/program-faqs/program-faqs.component').then(m=>m.ProgramFaqsComponent),canActivate:[authGuard,roleGuard],data:{role:'admin'}},
   { path: 'students/:id', loadComponent: () => import('./modules/admin/student-profile/student-profile.component').then(m => m.StudentProfileComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
-  { path: 'careers', loadComponent: () => import('./modules/admin/careers/careers.component').then(m => m.CareersComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
+  // { path: 'careers', loadComponent: () => import('./modules/admin/careers/careers.component').then(m => m.CareersComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'notifications', loadComponent: () => import('./modules/admin/notifications/notifications.component').then(m => m.NotificationsComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
-  { path: 'exam-monitoring', loadComponent: () => import('./modules/admin/exam-monitoring/exam-monitoring.component').then(m => m.ExamMonitoringComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
+  // { path: 'exam-monitoring', loadComponent: () => import('./modules/admin/exam-monitoring/exam-monitoring.component').then(m => m.ExamMonitoringComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: 'manage-plans', loadComponent: () => import('./modules/admin/manage-plans/manage-plans.component').then(m => m.ManagePlansComponent), canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   // { 
   //   path: 'landing-page', 
@@ -99,13 +99,7 @@ export const routes: Routes = [
   path: 'directory-master', 
   loadComponent: () => import('./modules/admin/directory-master/directory-master.component').then(m => m.DirectoryMasterComponent),
   canActivate: [authGuard, roleGuard],
-  data: { role: 'admin', section: 'pre' }
-  },
-  {
-  path: 'mains-directory-master',
-  loadComponent: () => import('./modules/admin/directory-master/directory-master.component').then(m => m.DirectoryMasterComponent),
-  canActivate: [authGuard, roleGuard],
-  data: { role: 'admin', section: 'mains' }
+  data: { role: 'admin' }
   },
   {
     path: 'support-tickets',
@@ -150,12 +144,6 @@ export const routes: Routes = [
     data: { role: 'admin' }
   },
   {
-    path: 'app-settings',
-    loadComponent: () => import('./modules/admin/app-settings/app-settings.component').then(m => m.AppSettingsComponent),
-    canActivate: [authGuard, roleGuard],
-    data: { role: 'admin' }
-  },
-  {
   path: 'free-resource-admin', 
   loadComponent: () => import('./modules/admin/free-resource-admin/free-resource-admin.component').then(m => m.FreeResourceAdminComponent),
   canActivate: [authGuard, roleGuard],
@@ -179,24 +167,6 @@ export const routes: Routes = [
   loadComponent: () => import('./modules/tests/demo-tests/demo-tests.component').then(m => m.DemoTestsComponent),
   canActivate: [authGuard, roleGuard],
   data: { role: 'admin' }
-  },
-  {
-    path: 'demo-test-admin/:id/results',
-    loadComponent: () => import('./modules/tests/demo-tests/demo-test-results.component').then(m => m.DemoTestResultsComponent),
-    canActivate: [authGuard, roleGuard],
-    data: { role: 'admin' }
-  },
-  {
-    path: 'demo-test-attempts',
-    loadComponent: () => import('./modules/tests/demo-tests/demo-test-attempts.component').then(m => m.DemoTestAttemptsComponent),
-    canActivate: [authGuard, roleGuard],
-    data: { role: 'admin', attemptType: 'demo' }
-  },
-  {
-    path: 'website-quiz-attempts',
-    loadComponent: () => import('./modules/tests/demo-tests/demo-test-attempts.component').then(m => m.DemoTestAttemptsComponent),
-    canActivate: [authGuard, roleGuard],
-    data: { role: 'admin', attemptType: 'quiz' }
   },
   { path: 'quizzes', component: QuizzesComponent, canActivate: [authGuard, roleGuard], data: { role: 'admin' } },
   { path: 'quizzes/:id', component: QuizDetailsComponent, canActivate: [authGuard, roleGuard], data: { role: 'admin' } },

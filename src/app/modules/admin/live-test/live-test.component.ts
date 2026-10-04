@@ -31,7 +31,6 @@ import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { LiveTestService } from '../../../shared/services/live-test.service';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
-import { ReopenExamDialogComponent } from '../../tests/reopen-exam-dialog/reopen-exam-dialog.component';
 
 // ============================================
 // INTERFACES
@@ -75,6 +74,18 @@ interface FilterParams {
 // ============================================
 // VALIDATORS
 // ============================================
+const startTimeValidator = (control: AbstractControl): ValidationErrors | null => {
+  if (!control.value) return null;
+  const selectedDate = new Date(control.value);
+  const now = new Date();
+  const minDateTime = new Date(now.getTime() + 5 * 60000);
+
+  if (selectedDate < minDateTime) {
+    return { pastDate: true };
+  }
+  return null;
+};
+
 const endTimeValidator = (startTimeControl: AbstractControl) => {
   return (control: AbstractControl): ValidationErrors | null => {
     if (!control.value || !startTimeControl.value) return null;
@@ -136,31 +147,16 @@ export class AdminLiveTestComponent implements OnInit, OnDestroy {
   readonly language = inject(LanguageService);
   openSubmissionFile(submissionId: string) { this.dialog.open(SubmissionPdfComponent, {data:{submissionId},width:'95vw',maxWidth:'1100px'}); }
   submissions: any[] = [];
-  submissionsPageSize = 5;
-  currentSubmissionsPage = 1;
   submissionsTitle = '';
   submissionsError = '';
   selectedTab = 0;
   submissionsLoading = false;
-  get submissionsTotalPages(): number { return Math.ceil(this.submissions.length / this.submissionsPageSize); }
-  get submissionsPages(): number[] { return Array.from({ length: this.submissionsTotalPages }, (_, index) => index + 1); }
-  get paginatedSubmissions(): any[] {
-    const start = (this.currentSubmissionsPage - 1) * this.submissionsPageSize;
-    return this.submissions.slice(start, start + this.submissionsPageSize);
-  }
-  get submissionsRangeStart(): number { return this.submissions.length ? (this.currentSubmissionsPage - 1) * this.submissionsPageSize + 1 : 0; }
-  get submissionsRangeEnd(): number { return Math.min(this.currentSubmissionsPage * this.submissionsPageSize, this.submissions.length); }
-  changeSubmissionsPage(page: number) {
-    if (page < 1 || page > this.submissionsTotalPages) return;
-    this.currentSubmissionsPage = page;
-  }
   loadAllSubmissions() { this.showSubmissions(); }
   showSubmissions(test?: LiveTest) {
     this.selectedTab = 1; this.submissionsLoading = true;
-    this.currentSubmissionsPage = 1;
     this.submissionsTitle = test ? this.language.content(test.title, test.titleHi) : 'All submissions';
     this.submissions = []; this.submissionsError = '';
-    this.http.get<any>(environment.apiUrl + '/live-tests/' + (test ? test._id + '/submissions' : 'admin/submissions')).subscribe({next: r => {this.submissions = r.data || []; if(test) test.submissionCount = this.submissions.length; this.submissionsLoading = false;}, error: e => {this.submissionsError = e.error?.message || 'Unable to load submissions.'; this.submissionsLoading = false;}});
+    this.http.get<any>(environment.apiUrl + '/live-tests/' + (test ? test._id + '/submissions' : 'admin/submissions')).subscribe({next: r => {this.submissions = r.data; if(test) test.submissionCount = r.data.length; this.submissionsLoading = false;}, error: e => {this.submissionsError = e.error?.message || 'Unable to load submissions.'; this.submissionsLoading = false;}});
   }
   // ============================================
   // VIEW CHILDREN
@@ -263,7 +259,7 @@ export class AdminLiveTestComponent implements OnInit, OnDestroy {
       questions: this.fb.array([]),
       meetLink: ['', [Validators.required, meetLinkValidator]],
       instructions: [''],
-      startDateTime: ['', [Validators.required]],
+      startDateTime: ['', [Validators.required, startTimeValidator]],
       endDateTime: ['', [Validators.required]],
       order: [0],
       isActive: [true]
@@ -347,17 +343,20 @@ export class AdminLiveTestComponent implements OnInit, OnDestroy {
   // ============================================
   getDefaultStartDateTime(): string {
     const now = new Date();
-    now.setSeconds(0, 0);
-    now.setMinutes(now.getMinutes() + 1);
-    return this.formatDateTimeForInput(now);
+    const startDateTime = new Date(now.getTime() + 5 * 60000);
+    return startDateTime.toISOString().slice(0, 16);
   }
 
   getDefaultEndDateTime(): string {
-    const endDateTime = new Date();
-    endDateTime.setSeconds(0, 0);
-    endDateTime.setMinutes(endDateTime.getMinutes() + 1);
-    endDateTime.setHours(endDateTime.getHours() + 3);
-    return this.formatDateTimeForInput(endDateTime);
+    const now = new Date();
+    const endDateTime = new Date(now.getTime() + 3 * 60 * 60000);
+    return endDateTime.toISOString().slice(0, 16);
+  }
+
+  getMinDateTime(): string {
+    const now = new Date();
+    const minDateTime = new Date(now.getTime() + 5 * 60000);
+    return minDateTime.toISOString().slice(0, 16);
   }
 
   onDateTimeChange(): void {
@@ -385,8 +384,7 @@ export class AdminLiveTestComponent implements OnInit, OnDestroy {
   formatDateTimeForInput(date: Date | string): string {
     if (!date) return '';
     const d = new Date(date);
-    const pad = (value: number) => value.toString().padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return d.toISOString().slice(0, 16);
   }
 
   // ============================================
@@ -585,19 +583,13 @@ export class AdminLiveTestComponent implements OnInit, OnDestroy {
   }
 
   reopenTest(test: LiveTest) {
-    const dialogRef = this.dialog.open(ReopenExamDialogComponent, {
-      width: '480px',
-      maxWidth: 'calc(100vw - 32px)',
-      panelClass: 'reopen-exam-dialog-panel',
-      autoFocus: false,
-      data: { testTitle: test.title }
-    });
-    dialogRef.afterClosed().subscribe(details => {
-      if (!details) return;
-      this.liveTestService.reopenLiveTest(test._id, details.email, details.until).subscribe({
-        next: (response: any) => this.showSnackBar(response.message || `Exam reopened for ${response.student?.email || details.email}`),
-        error: (error) => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
-      });
+    const email = prompt('Student email');
+    if (!email) return;
+    const until = prompt('Reopen until (YYYY-MM-DDTHH:MM)', new Date(Date.now() + 2 * 3600000).toISOString().slice(0, 16));
+    if (!until) return;
+    this.liveTestService.reopenLiveTest(test._id, email, until).subscribe({
+      next: (response: any) => this.showSnackBar(response.message || `Exam reopened for ${response.student?.email || email}`),
+      error: (error) => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
     });
   }
 

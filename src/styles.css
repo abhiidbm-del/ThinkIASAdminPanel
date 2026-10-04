@@ -162,14 +162,6 @@ body button:not([mat-icon-button]):hover:not(:disabled) {
   max-height: calc(100vh - 24px) !important;
 }
 
-.manage-plan-dialog-panel .mat-mdc-dialog-surface,
-.manage-program-dialog-panel .mat-mdc-dialog-surface,
-.meeting-create-dialog-panel .mat-mdc-dialog-surface {
-  padding: 0 !important;
-  border-radius: 16px;
-  overflow: hidden !important;
-}
-
 .create-test-dialog-panel .mat-mdc-dialog-component-host {
   display: flex;
   flex-direction: column;

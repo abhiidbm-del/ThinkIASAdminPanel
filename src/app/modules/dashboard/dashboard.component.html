@@ -332,87 +332,14 @@
   </div>
   <div *ngIf="!loading() && currentUser()?.role === 'admin' && !statisticsError()" class="admin-dashboard">
     <div class="stats-grid">
-      <a class="stat-card-link" routerLink="/manage-tests" aria-label="View all tests">
-        <mat-card class="stat-card stat-card-tests">
-          <div class="stat-card-topline">
-            <div class="stat-icon" aria-hidden="true"><mat-icon>quiz</mat-icon></div>
-            <span class="stat-label">Total Tests</span>
-            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
-          </div>
-          <div class="stat-value-row"><h2>{{ totalTestsCount() }}</h2><span class="stat-description">Tests created</span></div>
-        </mat-card>
-      </a>
-
-      <a class="stat-card-link" routerLink="/manage-tests" [queryParams]="{ seriesKind: 'pre' }" aria-label="View Prelims tests">
-        <mat-card class="stat-card stat-card-prelims">
-          <div class="stat-card-topline">
-            <div class="stat-icon" aria-hidden="true"><mat-icon>fact_check</mat-icon></div>
-            <span class="stat-label">Prelims Exams</span>
-            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
-          </div>
-          <div class="stat-value-row"><h2>{{ prelimsTestsCount() }}</h2><span class="stat-description">Prelims tests</span></div>
-        </mat-card>
-      </a>
-
-      <a class="stat-card-link" routerLink="/manage-tests" [queryParams]="{ seriesKind: 'mains' }" aria-label="View Mains tests">
-        <mat-card class="stat-card stat-card-mains">
-          <div class="stat-card-topline">
-            <div class="stat-icon" aria-hidden="true"><mat-icon>edit_note</mat-icon></div>
-            <span class="stat-label">Mains Exams</span>
-            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
-          </div>
-          <div class="stat-value-row"><h2>{{ mainsTestsCount() }}</h2><span class="stat-description">Mains tests</span></div>
-        </mat-card>
-      </a>
-
-      <a class="stat-card-link" routerLink="/questions-master" aria-label="Open Question Bank">
-        <mat-card class="stat-card stat-card-questions">
-          <div class="stat-card-topline">
-            <div class="stat-icon" aria-hidden="true"><mat-icon>inventory_2</mat-icon></div>
-            <span class="stat-label">Question Bank</span>
-            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
-          </div>
-          <div class="stat-value-row"><h2>{{ questionBankCount() }}</h2><span class="stat-description">Questions stored</span></div>
-        </mat-card>
-      </a>
-
-      <a class="stat-card-link" routerLink="/support-tickets" aria-label="Open support requests">
-        <mat-card class="stat-card stat-card-support">
-          <div class="stat-card-topline">
-            <div class="stat-icon" aria-hidden="true"><mat-icon>support_agent</mat-icon></div>
-            <span class="stat-label">Support Requests</span>
-            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
-          </div>
-          <div class="support-counts">
-            <div><strong>{{ newSupportRequestsCount() }}</strong><span>New · 24h</span></div>
-            <div><strong>{{ openSupportRequestsCount() }}</strong><span>Open</span></div>
-          </div>
-        </mat-card>
-      </a>
-
-      <a class="stat-card-link" routerLink="/website-quiz-attempts" aria-label="Open Website Quiz student attempts">
-        <mat-card class="stat-card stat-card-quizzes">
-          <div class="stat-card-topline">
-            <div class="stat-icon" aria-hidden="true"><mat-icon>quiz</mat-icon></div>
-            <span class="stat-label">Website Quiz</span>
-            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
-          </div>
-          <div class="stat-value-row"><h2>{{ quizAttemptsCount() }}</h2><span class="stat-description">Total attempts</span></div>
-          <div class="stat-secondary-value"><strong>{{ recentQuizAttemptsCount() }}</strong><span>New attempts · 24h</span></div>
-        </mat-card>
-      </a>
-
-      <a class="stat-card-link" routerLink="/demo-test-attempts" aria-label="Open Demo Test student attempts">
-        <mat-card class="stat-card stat-card-demo-tests">
-          <div class="stat-card-topline">
-            <div class="stat-icon" aria-hidden="true"><mat-icon>play_lesson</mat-icon></div>
-            <span class="stat-label">Demo Test</span>
-            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
-          </div>
-          <div class="stat-value-row"><h2>{{ demoAttemptsCount() }}</h2><span class="stat-description">Total attempts</span></div>
-          <div class="stat-secondary-value"><strong>{{ recentDemoAttemptsCount() }}</strong><span>New attempts · 24h</span></div>
-        </mat-card>
-      </a>
+      <mat-card class="stat-card stat-card-tests">
+        <div class="stat-card-topline">
+          <div class="stat-icon" aria-hidden="true"><mat-icon>quiz</mat-icon></div>
+          <span class="stat-label">Total Tests</span>
+          <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+        </div>
+        <div class="stat-value-row"><h2>{{ totalTestsCount() }}</h2><span class="stat-description">Tests created</span></div>
+      </mat-card>
 
       <mat-card class="stat-card stat-card-students clickable-card" (click)="navigateToStudentsList()">
         <div class="stat-card-topline">
@@ -423,16 +350,14 @@
         <div class="stat-value-row"><h2>{{ totalStudentsCount() }}</h2><span class="stat-description">Registered students</span></div>
       </mat-card>
 
-      <a class="stat-card-link" routerLink="/admin-results" aria-label="View all test results">
-        <mat-card class="stat-card stat-card-results">
-          <div class="stat-card-topline">
-            <div class="stat-icon" aria-hidden="true"><mat-icon>insights</mat-icon></div>
-            <span class="stat-label">Total Results</span>
-            <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
-          </div>
-          <div class="stat-value-row"><h2>{{ totalResultsCount() }}</h2><span class="stat-description">Tests submitted</span></div>
-        </mat-card>
-      </a>
+      <mat-card class="stat-card stat-card-results">
+        <div class="stat-card-topline">
+          <div class="stat-icon" aria-hidden="true"><mat-icon>insights</mat-icon></div>
+          <span class="stat-label">Total Results</span>
+          <mat-icon class="stat-arrow" aria-hidden="true">arrow_forward</mat-icon>
+        </div>
+        <div class="stat-value-row"><h2>{{ totalResultsCount() }}</h2><span class="stat-description">Tests submitted</span></div>
+      </mat-card>
     </div>
 
     <!-- Quick Stats -->

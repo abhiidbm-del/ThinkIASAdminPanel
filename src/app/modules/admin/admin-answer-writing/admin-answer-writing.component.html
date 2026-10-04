@@ -926,8 +926,13 @@
                     matInput 
                     type="datetime-local" 
                     formControlName="startDateTime" 
+                    [min]="getMinDateTime()"
                     (change)="onDateTimeChange()">
                   <mat-icon matSuffix>schedule</mat-icon>
+                  <mat-hint>Must be at least 5 minutes from now</mat-hint>
+                  <mat-error *ngIf="exerciseForm.get('startDateTime')?.hasError('pastDate')">
+                    Start time must be at least 5 minutes from now
+                  </mat-error>
                   <mat-error *ngIf="exerciseForm.get('startDateTime')?.hasError('required')">
                     Start time is required
                   </mat-error>
@@ -939,7 +944,7 @@
                     matInput 
                     type="datetime-local" 
                     formControlName="endDateTime" 
-                    >
+                    [min]="getMinDateTime()">
                   <mat-icon matSuffix>schedule</mat-icon>
                   <mat-hint>Must be after start time</mat-hint>
                   <mat-error *ngIf="exerciseForm.get('endDateTime')?.hasError('invalidEndTime')">

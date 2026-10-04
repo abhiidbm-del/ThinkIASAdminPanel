@@ -55,12 +55,4 @@ export class DemoTestService {
   getStudentDemoResults(): Observable<any> {
     return this.http.get(`${this.apiUrl}/student/results`);
   }
-
-  getDemoTestResults(testId: string): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/demoResults/admin/test/${testId}/results`);
-  }
-
-  getAllDemoResults(): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/demoResults/admin/results`);
-  }
 }

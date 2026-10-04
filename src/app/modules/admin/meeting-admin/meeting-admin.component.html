@@ -1,9 +1,9 @@
-<div class="meeting-container" [class.mains-mentorship]="audience === 'mains'">
+<div class="meeting-container">
   <!-- Header -->
   <div class="meeting-header">
     <div class="header-content">
-      <i class="fa header-icon" [ngClass]="audience === 'mains' ? 'fa-file-alt' : 'fa-clipboard-list'"></i>
-      <h2>{{ audience === 'mains' ? 'Mains Mentorship Planner' : 'Prelims Mentorship Planner' }}</h2>
+      <i class="fa fa-calendar-alt header-icon"></i>
+      <h2>Meeting Planner</h2>
     </div>
     <div class="header-actions">
       <button class="btn btn-primary" (click)="openCreateModal()">
@@ -196,12 +196,12 @@
 
 <!-- Modals -->
 <!-- Create Meeting Modal -->
-<ng-template #createMeetingDialog>
-  <div class="modal meeting-create-modal" *ngIf="showCreateModal">
+<div class="modal-overlay" *ngIf="showCreateModal">
+  <div class="modal">
     <div class="modal-header">
       <i class="fa fa-plus-circle modal-icon"></i>
       <h3>Create New Meeting</h3>
-      <button class="btn-close" (click)="closeCreateModal()">
+      <button class="btn-close" (click)="showCreateModal = false">
         <i class="fa fa-times"></i>
       </button>
     </div>
@@ -247,7 +247,7 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn secondary" (click)="closeCreateModal()">
+      <button class="btn secondary" (click)="showCreateModal = false">
         Cancel
       </button>
       <button class="btn primary" (click)="createMeeting()" 
@@ -257,7 +257,7 @@
       </button>
     </div>
   </div>
-</ng-template>
+</div>
 
 <!-- Edit Meeting Modal -->
 <!-- Edit Meeting Modal -->

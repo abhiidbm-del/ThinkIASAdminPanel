@@ -219,27 +219,3 @@ mat-dialog-actions {
   font-size: 12px;
   font-style: italic;
 }
-
-.language-section {
-  grid-column: 1 / -1;
-  padding: 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
-}
-.language-section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.language-badge {
-  background: #17683f;
-  color: #fff;
-  border-radius: 4px;
-  padding: 2px 8px;
-  font-size: 12px;
-}
-.language-section.hindi-section .language-badge {
-  background: #b45309;
-}

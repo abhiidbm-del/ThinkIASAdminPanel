@@ -900,11 +900,10 @@
 }
 
 .header {
-  /* align-items: flex-end; */
+  align-items: flex-end;
   border-bottom: 1px solid var(--tests-line);
   margin: 0 auto 26px;
   max-width: 1480px;
-  border-radius: 20px;
   padding-bottom: 22px;
 }
 

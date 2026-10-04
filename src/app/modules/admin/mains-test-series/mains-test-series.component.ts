@@ -22,7 +22,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 import { CreateTestDialogComponent } from '../../tests/create-test-dialog/create-test-dialog.component';
-import { ReopenExamDialogComponent } from '../../tests/reopen-exam-dialog/reopen-exam-dialog.component';
 
 export interface MainsTestDate {
   date: Date | string;
@@ -465,19 +464,13 @@ export class MainsTestSeriesComponent implements OnInit {
   }
 
   openReopen(series: MainsTestSeries, exam: any) {
-    const dialogRef = this.dialog.open(ReopenExamDialogComponent, {
-      width: '480px',
-      maxWidth: 'calc(100vw - 32px)',
-      panelClass: 'reopen-exam-dialog-panel',
-      autoFocus: false,
-      data: { testTitle: exam.title }
-    });
-    dialogRef.afterClosed().subscribe(details => {
-      if (!details) return;
-      this.http.post(`${this.api}/${series._id}/exams/${exam._id}/reopen`, { email: details.email, until: details.until }).subscribe({
-        next: () => this.snackBar.open('Exam reopened for the student', 'Close', { duration: 3000 }),
-        error: error => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
-      });
+    const email = prompt('Student email');
+    if (!email) return;
+    const until = prompt('Reopen until (YYYY-MM-DDTHH:MM)', new Date(Date.now() + 2 * 3600000).toISOString().slice(0, 16));
+    if (!until) return;
+    this.http.post(`${this.api}/${series._id}/exams/${exam._id}/reopen`, { email, until }).subscribe({
+      next: () => this.snackBar.open('Exam reopened for the student', 'Close', { duration: 3000 }),
+      error: error => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
     });
   }
 }

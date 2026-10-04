@@ -44,8 +44,6 @@ export class DirectoryExplorerComponent implements OnInit, OnChanges {
   newFileDescription = '';
   newFileDuration = ''; // New field for videos
   newFileThumbnail = ''; // New field for videos
-  newFileLanguage = 'both';
-  editFileLanguage = 'both';
   
   editFileName = '';
   editFileLink = '';
@@ -264,8 +262,7 @@ export class DirectoryExplorerComponent implements OnInit, OnChanges {
         this.newFileLink.trim(),
         this.newFileDescription.trim(),
         this.newFileDuration.trim(),
-        this.newFileThumbnail.trim(),
-        this.newFileLanguage
+        this.newFileThumbnail.trim()
       ).subscribe({
         next: (response: any) => {
           this.showCreateFileModal = false;
@@ -314,8 +311,7 @@ export class DirectoryExplorerComponent implements OnInit, OnChanges {
         this.editFileLink.trim(),
         this.editFileDescription.trim(),
         this.editFileDuration.trim(),
-        this.editFileThumbnail.trim(),
-        this.editFileLanguage
+        this.editFileThumbnail.trim()
       ).subscribe({
         next: (response: any) => {
           this.showEditFileModal = false;
@@ -479,7 +475,6 @@ export class DirectoryExplorerComponent implements OnInit, OnChanges {
     this.editFileName = item.name;
     this.editFileLink = item.fileLink || '';
     this.editFileDescription = item.description || '';
-    this.editFileLanguage = item.language || 'both';
     
     // Additional fields for videos
     if (this.resourceType === 'video') {
@@ -526,13 +521,11 @@ export class DirectoryExplorerComponent implements OnInit, OnChanges {
     this.newFileDescription = '';
     this.newFileDuration = '';
     this.newFileThumbnail = '';
-    this.newFileLanguage = 'both';
     this.editFileName = '';
     this.editFileLink = '';
     this.editFileDescription = '';
     this.editFileDuration = '';
     this.editFileThumbnail = '';
-    this.editFileLanguage = 'both';
   }
   
   // File icon methods - updated for videos

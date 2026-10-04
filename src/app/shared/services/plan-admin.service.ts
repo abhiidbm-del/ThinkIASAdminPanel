@@ -29,7 +29,4 @@ export class PlanAdminService {
   update(plan: AdminPlan): Observable<{ success: boolean; data: AdminPlan }> {
     return this.http.put<{ success: boolean; data: AdminPlan }>(`${environment.apiUrl}/plans/admin/${plan.id}`, plan);
   }
-  delete(planId: string): Observable<{ success: boolean; message: string }> {
-    return this.http.delete<{ success: boolean; message: string }>(`${environment.apiUrl}/plans/admin/${planId}`);
-  }
 }

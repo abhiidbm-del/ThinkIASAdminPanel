@@ -1,21 +1,17 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { Meeting, CreateMeetingRequest, UpdateMeetingRequest, MeetingService } from '../../../shared/services/meeting.service';
 
 @Component({
   selector: 'app-meeting-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatDialogModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './meeting-admin.component.html',
   styleUrls: ['./meeting-admin.component.css']
 })
 export class MeetingAdminComponent implements OnInit {
-  @ViewChild('createMeetingDialog') private createMeetingDialog!: TemplateRef<unknown>;
-  private createMeetingDialogRef?: MatDialogRef<unknown>;
-
   // Data
   upcomingMeetings: Meeting[] = [];
   completedMeetings: Meeting[] = [];
@@ -50,14 +46,12 @@ export class MeetingAdminComponent implements OnInit {
   successMessage = '';
   errorMessage = '';
   
-  constructor(private meetingService: MeetingService, private route: ActivatedRoute, private dialog: MatDialog) {}
+  constructor(private meetingService: MeetingService, private route: ActivatedRoute) {}
   
   ngOnInit() {
-    this.route.data.subscribe((data) => {
-      this.audience = data['audience'] === 'mains' ? 'mains' : 'pre';
-      this.newMeeting.audience = this.audience;
-      this.loadMeetings();
-    });
+    this.audience = this.route.snapshot.data['audience'] === 'mains' ? 'mains' : 'pre';
+    this.newMeeting.audience = this.audience;
+    this.loadMeetings();
   }
   
   // Load meetings
@@ -86,7 +80,7 @@ export class MeetingAdminComponent implements OnInit {
     
     this.meetingService.createMeeting(this.newMeeting).subscribe({
       next: (response) => {
-        this.closeCreateModal();
+        this.showCreateModal = false;
         this.resetNewMeetingForm();
         this.successMessage = 'Meeting created successfully';
         this.loadMeetings();
@@ -275,21 +269,6 @@ export class MeetingAdminComponent implements OnInit {
     
     this.showCreateModal = true;
     this.clearMessages();
-    this.createMeetingDialogRef = this.dialog.open(this.createMeetingDialog, {
-      width: '500px',
-      maxWidth: 'calc(100vw - 32px)',
-      maxHeight: 'calc(100dvh - 32px)',
-      panelClass: 'meeting-create-dialog-panel',
-      autoFocus: false
-    });
-    this.createMeetingDialogRef.afterClosed().subscribe(() => {
-      this.createMeetingDialogRef = undefined;
-      this.showCreateModal = false;
-    });
-  }
-
-  closeCreateModal(): void {
-    this.createMeetingDialogRef?.close();
   }
   
   openEditModal(meeting: Meeting) {
