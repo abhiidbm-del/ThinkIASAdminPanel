@@ -124,7 +124,6 @@
   font-size: 1rem;
   transition: all 0.3s ease;
   background: #f8f9fa;
-  width: -webkit-fill-available;
 }
 
 .form-control:focus {

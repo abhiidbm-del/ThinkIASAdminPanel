@@ -1,5 +1,4 @@
 .manage-plans-refinement {}
-.plan .delete-plan-button{margin-top:10px;background:#c62828;color:#fff;box-shadow:0 5px 12px rgba(198,40,40,.16)}.plan .delete-plan-button:hover:not(:disabled){background:#a91f1f}.plan .delete-plan-button:disabled{opacity:.6;cursor:wait}
 :host { display:block; background:#f4f7fb; color:#172b4d; }
 .page { max-width:1200px; padding:6px 4px 50px; }
 .page-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; padding:13px 16px; border:1px solid #e2e9f1; border-radius:12px; background:#fff; box-shadow:0 8px 20px rgba(28,54,94,.05); }

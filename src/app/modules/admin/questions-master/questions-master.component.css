@@ -5,6 +5,8 @@
   padding: 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+.sheet-import{display:grid;gap:8px;margin:16px 0}.sheet-input{padding:12px 14px;border:1px solid #d6e0e8;border-radius:10px}
+
 /* Import workspace */
 .import-panel {
   margin-bottom: 24px;
@@ -210,43 +212,6 @@
   font-size: 28px;
 }
 
-.duplicate-report {
-  margin: 14px 0;
-  padding: 12px 14px;
-  border: 1px solid #f2c66d;
-  border-radius: 8px;
-  background: #fff8e8;
-  color: #704c13;
-  font-size: 13px;
-}
-
-.duplicate-report-heading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.duplicate-report-heading mat-icon {
-  color: #a36b12;
-}
-
-.duplicate-report p {
-  margin: 6px 0;
-}
-
-.duplicate-report ul {
-  display: grid;
-  gap: 5px;
-  max-height: 180px;
-  overflow-y: auto;
-  margin: 0;
-  padding-left: 20px;
-}
-
-.duplicate-report li span {
-  overflow-wrap: anywhere;
-}
-
 .preview-label {
   display: block;
   margin-bottom: 3px;
@@ -281,95 +246,6 @@
 
 .confirm-import-btn {
   min-height: 40px;
-}
-
-.tag-selection-hint {
-  margin: 12px 0 8px !important;
-  color: #475569;
-  font-size: 13px;
-}
-
-.question-tag-list {
-  display: grid;
-  max-height: min(52vh, 560px);
-  overflow-y: auto;
-  border: 1px solid #dbe4e8;
-  border-radius: 8px;
-  background: #fff;
-}
-
-.question-tag-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(190px, 250px);
-  gap: 16px;
-  align-items: center;
-  padding: 12px 14px;
-  border-bottom: 1px solid #e8edef;
-}
-
-.question-tag-row:last-child {
-  border-bottom: 0;
-}
-
-.question-tag-copy {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
-  min-width: 0;
-}
-
-.question-number {
-  display: grid;
-  width: 26px;
-  height: 26px;
-  place-items: center;
-  border-radius: 50%;
-  background: #edf4f0;
-  color: #1d654a;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.question-tag-copy p {
-  margin: 2px 0 0;
-  color: #1f2937;
-  font-size: 13px;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-}
-
-.question-tag-copy small {
-  display: block;
-  margin-top: 4px;
-  color: #64748b;
-  font-size: 12px;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-}
-
-.question-tag-field {
-  width: 100%;
-  margin: 0;
-}
-
-.question-tag-field ::ng-deep .mat-mdc-form-field-subscript-wrapper {
-  display: none;
-}
-
-.confirm-import-btn {
-  margin-top: 14px;
-}
-
-@media (max-width: 720px) {
-  .question-tag-row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
-  }
-
-  .question-tag-field {
-    padding-left: 38px;
-  }
 }
 
 .header {

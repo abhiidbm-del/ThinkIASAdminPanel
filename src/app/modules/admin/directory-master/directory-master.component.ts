@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DirectoryService } from '../../../shared/services/directory.service';
 import { DirectoryItem } from '../../../core/models/directory.model';
-import { ActivatedRoute } from '@angular/router';
 
 interface BreadcrumbItem {
   name: string;
@@ -51,18 +50,12 @@ export class DirectoryMasterComponent implements OnInit {
   // Messages
   errorMessage = '';
   successMessage = '';
-  section: 'pre' | 'mains' = 'pre';
   
-  constructor(private directoryService: DirectoryService, private route: ActivatedRoute) {}
+  constructor(private directoryService: DirectoryService) {}
   
   ngOnInit() {
-    this.route.data.subscribe((data) => {
-      this.section = data['section'] === 'mains' ? 'mains' : 'pre';
-      this.currentItem = null;
-      this.navigationHistory = [];
-      this.loadDirectoryTree();
-      this.updateBreadcrumbs();
-    });
+    this.loadDirectoryTree();
+    this.updateBreadcrumbs();
   }
   
   // Load directory tree
@@ -70,7 +63,7 @@ export class DirectoryMasterComponent implements OnInit {
     this.loading = true;
     const apiParentId = parentId || undefined;
     
-    this.directoryService.getDirectoryTree(apiParentId, this.section).subscribe({
+    this.directoryService.getDirectoryTree(apiParentId).subscribe({
       next: (response) => {
         this.items = response.items || [];
         this.loading = false;
@@ -176,7 +169,7 @@ export class DirectoryMasterComponent implements OnInit {
     
     const parentId = this.currentItem?._id || null;
     
-    this.directoryService.createFolder(this.newFolderName.trim(), parentId, this.section).subscribe({
+    this.directoryService.createFolder(this.newFolderName.trim(), parentId).subscribe({
       next: (response) => {
         this.showCreateFolderModal = false;
         this.newFolderName = '';
@@ -202,8 +195,7 @@ export class DirectoryMasterComponent implements OnInit {
       this.newFileName.trim(),
       parentId,
       this.newFileLink.trim(),
-      this.newFileDescription.trim(),
-      this.section
+      this.newFileDescription.trim()
     ).subscribe({
       next: (response) => {
         this.showCreateFileModal = false;

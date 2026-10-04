@@ -13,11 +13,10 @@
       <div class="duration" *ngIf="plan.duration">◷ {{ plan.duration }}</div>
       <div class="feature-heading">What's included</div><ul><li *ngFor="let feature of plan.features">{{ feature }}</li></ul>
       <button class="edit-plan-button" (click)="edit(plan)">{{ 'Edit plan' | t }} <span>→</span></button>
-      <button type="button" class="delete-plan-button" (click)="deletePlan(plan)" [disabled]="deletingPlanId === plan.id">{{ (deletingPlanId === plan.id ? 'Deleting...' : 'Delete plan') | t }}</button>
     </article>
   </div>
-  <ng-template #editorTemplate>
-    <form class="editor" *ngIf="editing as plan" #planForm="ngForm" (ngSubmit)="planForm.valid && save()">
+  <div class="overlay" *ngIf="editing as plan">
+    <form class="editor" #planForm="ngForm" (ngSubmit)="planForm.valid && save()">
       <div class="editor-title"><h3>{{ (creating ? 'Add Plan' : 'Edit plan') | t }}</h3><button type="button" (click)="cancel()">×</button></div>
       <p class="error" *ngIf="error">{{error}}</p>
       <fieldset><legend>Courses included in this new plan</legend><label class="check"><input type="checkbox" name="includesPrelims" [(ngModel)]="includesPrelims">Prelims</label><label class="check"><input type="checkbox" name="includesMains" [(ngModel)]="includesMains">Mains</label></fieldset>
@@ -47,5 +46,5 @@
       <div class="row"><label>{{ 'Display order' | t }}<input name="displayOrder" type="number" min="0" [(ngModel)]="plan.displayOrder"></label><label class="check"><input name="active" type="checkbox" [(ngModel)]="plan.isActive"> {{ 'Active on dashboard' | t }}</label></div>
       <div class="actions"><button type="button" class="secondary" (click)="cancel()">{{ 'Cancel' | t }}</button><button type="submit" [disabled]="saving || planForm.invalid">{{ (saving ? 'Saving...' : 'Save plan') | t }}</button></div>
     </form>
-  </ng-template>
+  </div>
 </div>

@@ -241,9 +241,9 @@
     <div class="submissions-header">
       <div>
         <h2>{{ submissionsTitle || 'Student Submissions' }}</h2>
-        <p *ngIf="!submissionsLoading" class="submissions-count" role="status"><span class="count-dot"></span> {{ submissions.length }} submissions</p>
+        <p *ngIf="!submissionsLoading" role="status">Submissions: {{ submissions.length }}</p>
       </div>
-      <button mat-stroked-button class="refresh-submissions-btn" (click)="loadAllSubmissions()" [disabled]="submissionsLoading">
+      <button mat-stroked-button (click)="loadAllSubmissions()">
         <i class="fas fa-sync-alt"></i> All submissions / Refresh
       </button>
     </div>
@@ -267,7 +267,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of paginatedSubmissions">
+          <tr *ngFor="let item of submissions">
             <td class="primary-cell">{{ item.testId?.title || 'Deleted test' }}</td>
             <td>{{ item.studentId?.fullName || 'Deleted student' }}</td>
             <td>{{ item.studentId?.email || '—' }}</td>
@@ -289,21 +289,6 @@
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <div *ngIf="!submissionsLoading && !submissionsError && submissions.length > 0" class="submissions-pagination">
-      <span class="pagination-summary">Showing <strong>{{ submissionsRangeStart }}–{{ submissionsRangeEnd }}</strong> of <strong>{{ submissions.length }}</strong></span>
-      <nav *ngIf="submissionsTotalPages > 1" class="pagination-controls" aria-label="Submissions pages">
-        <button type="button" class="page-button page-arrow" aria-label="Previous page" [disabled]="currentSubmissionsPage === 1" (click)="changeSubmissionsPage(currentSubmissionsPage - 1)">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <button type="button" class="page-button" *ngFor="let page of submissionsPages" [class.active]="currentSubmissionsPage === page" [attr.aria-current]="currentSubmissionsPage === page ? 'page' : null" (click)="changeSubmissionsPage(page)">
-          {{ page }}
-        </button>
-        <button type="button" class="page-button page-arrow" aria-label="Next page" [disabled]="currentSubmissionsPage === submissionsTotalPages" (click)="changeSubmissionsPage(currentSubmissionsPage + 1)">
-          <i class="fas fa-chevron-right"></i>
-        </button>
-      </nav>
     </div>
   </section>
 </mat-tab>
@@ -641,8 +626,13 @@
                 matInput 
                 type="datetime-local" 
                 formControlName="startDateTime" 
+                [min]="getMinDateTime()"
                 (change)="onDateTimeChange()">
               <mat-icon matSuffix>schedule</mat-icon>
+              <mat-hint>Must be at least 5 minutes from now</mat-hint>
+              <mat-error *ngIf="testForm.get('startDateTime')?.hasError('pastDate')">
+                Start time must be at least 5 minutes from now
+              </mat-error>
               <mat-error *ngIf="testForm.get('startDateTime')?.hasError('required')">
                 Start time is required
               </mat-error>
@@ -654,7 +644,7 @@
                 matInput 
                 type="datetime-local" 
                 formControlName="endDateTime" 
-                >
+                [min]="getMinDateTime()">
               <mat-icon matSuffix>schedule</mat-icon>
               <mat-hint>Must be after start time</mat-hint>
               <mat-error *ngIf="testForm.get('endDateTime')?.hasError('invalidEndTime')">

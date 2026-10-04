@@ -52,7 +52,7 @@ export class SyllabusMasterComponent implements OnInit {
   syllabusSubTab: 'prelims' | 'mains' = 'prelims';
   
   // Topicwise subtabs
-  topicwiseSubTab: 'prelims1' | 'prelims2' | 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'optional' = 'prelims1';
+  topicwiseSubTab: 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'optional' = 'gs1';
   
   // Video subtabs
   videoSubTab: 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'strategy' | 'current' | 'mock' = 'gs1';
@@ -125,7 +125,7 @@ export class SyllabusMasterComponent implements OnInit {
     }
   }
 
-  switchTopicwiseSubTab(subtab: 'prelims1' | 'prelims2' | 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'optional'): void {
+  switchTopicwiseSubTab(subtab: 'gs1' | 'gs2' | 'gs3' | 'gs4' | 'essay' | 'optional'): void {
     this.topicwiseSubTab = subtab;
   }
 

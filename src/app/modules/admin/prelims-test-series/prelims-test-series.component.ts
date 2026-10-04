@@ -19,7 +19,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { PrelimsTSService, PrelimsTestSeries, TestDate } from '../../../shared/services/prelims-ts.service';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 import { CreateTestDialogComponent } from '../../tests/create-test-dialog/create-test-dialog.component';
-import { ReopenExamDialogComponent } from '../../tests/reopen-exam-dialog/reopen-exam-dialog.component';
 
 
 @Component({
@@ -526,19 +525,13 @@ export class PrelimsTestSeriesComponent implements OnInit {
   }
 
   openReopen(series: PrelimsTestSeries, exam: any) {
-    const dialogRef = this.dialog.open(ReopenExamDialogComponent, {
-      width: '480px',
-      maxWidth: 'calc(100vw - 32px)',
-      panelClass: 'reopen-exam-dialog-panel',
-      autoFocus: false,
-      data: { testTitle: exam.title }
-    });
-    dialogRef.afterClosed().subscribe(details => {
-      if (!details) return;
-      this.prelimsTSService.reopenExam(series._id!, exam._id, details.email, details.until).subscribe({
-        next: () => this.snackBar.open('Exam reopened for the student', 'Close', { duration: 3000 }),
-        error: error => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
-      });
+    const email = prompt('Student email');
+    if (!email) return;
+    const until = prompt('Reopen until (YYYY-MM-DDTHH:MM)', new Date(Date.now() + 2 * 3600000).toISOString().slice(0, 16));
+    if (!until) return;
+    this.prelimsTSService.reopenExam(series._id!, exam._id, email, until).subscribe({
+      next: () => this.snackBar.open('Exam reopened for the student', 'Close', { duration: 3000 }),
+      error: error => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
     });
   }
 }

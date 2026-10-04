@@ -229,15 +229,6 @@
           </div>
         </div>
         
-        <div class="form-group" *ngIf="resourceType === 'video'">
-          <label>Language *</label>
-          <select [(ngModel)]="newFileLanguage" class="form-control">
-            <option value="en">English only</option>
-            <option value="hi">Hindi only</option>
-            <option value="both">Both (English + Hindi)</option>
-          </select>
-        </div>
-        
         <div class="form-group">
           <label>Description (Optional)</label>
           <textarea [(ngModel)]="newFileDescription" 
@@ -299,15 +290,6 @@
                  placeholder="https://example.com/file.pdf" class="form-control">
         </div>
         
-        <div class="form-group" *ngIf="resourceType === 'video'">
-          <label>Language</label>
-          <select [(ngModel)]="editFileLanguage" class="form-control">
-            <option value="en">English only</option>
-            <option value="hi">Hindi only</option>
-            <option value="both">Both (English + Hindi)</option>
-          </select>
-        </div>
-
         <div class="form-group">
           <label>Description</label>
           <textarea [(ngModel)]="editFileDescription" 

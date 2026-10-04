@@ -183,7 +183,7 @@ export class DemoTestsComponent implements OnInit {
   }
 
   viewResults(test: any) {
-    this.router.navigate(['/demo-test-admin', test._id, 'results']);
+    this.router.navigate(['/admin/demo-results', test._id]);
   }
 
   previewDemoTest(test: any) {

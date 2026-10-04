@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit, ElementRef, ViewChild, SecurityContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -18,7 +18,6 @@ import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
-import { ReopenExamDialogComponent } from '../reopen-exam-dialog/reopen-exam-dialog.component';
 
 @Component({
   selector: 'app-live-tests',
@@ -46,14 +45,12 @@ export class LiveTestsComponent implements OnInit {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
   private confirmDialog = inject(ConfirmDialogService);
   private sanitizer = inject(DomSanitizer);
 
   @ViewChild('videoLinkInput') videoLinkInput!: ElementRef<HTMLInputElement>;
 
   tests = signal<any[]>([]);
-  seriesKind = signal<'pre' | 'mains' | null>(null);
   loading = signal(false);
   pdfDownloading = signal<string | null>(null); // Track which test is downloading PDF
   isAdmin = this.authService.currentUser()?.role === 'admin';
@@ -85,15 +82,13 @@ export class LiveTestsComponent implements OnInit {
   };
 
   ngOnInit() {
-    const seriesKind = this.route.snapshot.queryParamMap.get('seriesKind');
-    this.seriesKind.set(seriesKind === 'pre' || seriesKind === 'mains' ? seriesKind : null);
     this.loadTests();
   }
 
   loadTests() {
     this.loading.set(true);
     if (this.isAdmin) {
-      this.testService.getAllTests(this.seriesKind() || undefined).subscribe({
+      this.testService.getAllTests().subscribe({
         next: (tests) => {
           this.tests.set(tests);
           this.loading.set(false);
@@ -228,19 +223,13 @@ export class LiveTestsComponent implements OnInit {
   }
 
   reopenTest(test: any) {
-    const dialogRef = this.dialog.open(ReopenExamDialogComponent, {
-      width: '480px',
-      maxWidth: 'calc(100vw - 32px)',
-      panelClass: 'reopen-exam-dialog-panel',
-      autoFocus: false,
-      data: { testTitle: test.title }
-    });
-    dialogRef.afterClosed().subscribe(details => {
-      if (!details) return;
-      this.testService.reopenExam(test._id, details.email, details.until).subscribe({
-        next: (response: any) => this.snackBar.open(`Exam reopened for ${response.student?.email || details.email}`, 'Close', { duration: 4000 }),
-        error: (error: any) => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
-      });
+    const email = prompt('Student email');
+    if (!email) return;
+    const until = prompt('Reopen until (YYYY-MM-DDTHH:MM)', new Date(Date.now() + 2 * 3600000).toISOString().slice(0, 16));
+    if (!until) return;
+    this.testService.reopenExam(test._id, email, until).subscribe({
+      next: (response: any) => this.snackBar.open(`Exam reopened for ${response.student?.email || email}`, 'Close', { duration: 4000 }),
+      error: (error: any) => this.snackBar.open(error.error?.message || 'Unable to reopen exam', 'Close', { duration: 4000 })
     });
   }
 

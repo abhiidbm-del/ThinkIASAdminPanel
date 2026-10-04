@@ -282,30 +282,14 @@
             {{ 'Delete' | t }}
           </button>
         </div>
-        <section class="paper-list" *ngIf="series.testDates?.length">
-          <header class="paper-list-heading">
-            <h4><mat-icon>description</mat-icon>Exam papers</h4>
-            <span>{{ series.testDates.length }} scheduled</span>
-          </header>
-          <article *ngFor="let slot of series.testDates" class="paper-row">
-            <div class="paper-date">
-              <mat-icon>event</mat-icon>
-              <span>{{ formatDate(slot.date) }}<small>{{ slot.time }} · {{ slot.duration }} min</small></span>
-            </div>
-            <div class="paper-info">
-              <strong>{{ slot.exam?.title || 'No paper created yet' }}</strong>
-              <span class="paper-status" [class.ready]="!!slot.exam">{{ slot.exam ? 'Paper ready' : 'Awaiting paper' }}</span>
-            </div>
-            <div class="paper-actions">
-              <button mat-stroked-button color="primary" (click)="openPaperDialog(series, slot)">
-                <mat-icon>{{ slot.exam ? 'edit' : 'add' }}</mat-icon>{{ slot.exam ? 'Edit paper' : 'Create paper' }}
-              </button>
-              <button mat-button *ngIf="slot.exam" (click)="openReopen(series, slot.exam)">
-                <mat-icon>lock_open</mat-icon>Reopen
-              </button>
-            </div>
-          </article>
-        </section>
+        <div class="paper-list" *ngIf="series.testDates?.length">
+          <h4>Exam papers</h4>
+          <div *ngFor="let slot of series.testDates" class="paper-row">
+            <span>{{ formatDate(slot.date) }} {{ slot.time }} · {{ slot.exam?.title || 'No paper yet' }}</span>
+            <button mat-button color="primary" (click)="openPaperDialog(series, slot)">{{ slot.exam ? 'Edit paper' : 'Create paper' }}</button>
+            <button mat-button *ngIf="slot.exam" (click)="openReopen(series, slot.exam)">Reopen for student</button>
+          </div>
+        </div>
       </mat-card-actions>
     </mat-card>
   </div>

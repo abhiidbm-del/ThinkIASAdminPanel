@@ -55,8 +55,8 @@
   </div>
 
   <!-- Add/Edit Form Modal -->
-  <ng-template #programFormDialog>
-    <div class="modal-content" *ngIf="showForm">
+  <div class="modal" *ngIf="showForm" (click)="closeForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>{{ isEditing ? 'Edit Program' : 'Add New Program' }}</h2>
         <button class="close-btn" (click)="closeForm()">&times;</button>
@@ -77,33 +77,10 @@
           >
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label><i class="fas fa-university"></i> Examination *</label>
-            <select [(ngModel)]="currentProgram.examination" name="examination">
-              <option *ngFor="let exam of examinations" [value]="exam">{{ exam }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label><i class="fas fa-route"></i> Program *</label>
-            <select [(ngModel)]="currentProgram.programStage" name="programStage">
-              <option *ngFor="let stage of stages" [value]="stage">{{ stage }}</option>
-            </select>
-          </div>
-        </div>
-
         <div class="form-group">
-          <label><i class="fas fa-category"></i> Plan *</label>
+          <label><i class="fas fa-category"></i> Program Category *</label>
           <select [(ngModel)]="currentProgram.programCategory" name="programCategory">
             <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
-          </select>
-        </div>
-
-        <div class="form-group" *ngIf="isTestSeries(currentProgram.programCategory)">
-          <label><i class="fas fa-file-alt"></i> Prelims paper</label>
-          <select [(ngModel)]="currentProgram.paperVariant" name="paperVariant">
-            <option value="GS">GS only</option>
-            <option value="GS+CSAT">GS + CSAT</option>
           </select>
         </div>
 
@@ -214,19 +191,11 @@
         </section>
 
         <section class="language-section hindi-section">
-          <div class="language-section-header"><span class="language-badge">हि</span><div><h3>Hindi Details</h3><p>Fill Hindi copy and image separately from English.</p></div></div>
-          <div class="form-group"><label>Program name (Hindi)</label><input name="programNameHindi" [(ngModel)]="currentProgram.programNameHindi"></div>
-          <div class="form-group"><label>Description (Hindi)</label><textarea name="descriptionHindi" [(ngModel)]="currentProgram.descriptionHindi"></textarea></div>
-          <div class="form-group">
-            <label>Display Image URL (Hindi)</label>
-            <input
-              type="url"
-              [(ngModel)]="currentProgram.displayImageHindi"
-              name="displayImageHindi"
-              placeholder="https://example.com/hindi-image.jpg"
-            >
-          </div>
-          <div class="form-group"><label>Features (Hindi, matching English line order)</label><textarea name="featuresHindiInput" [(ngModel)]="featuresHindiInput" placeholder="एक फीचर प्रति लाइन"></textarea></div>
+          <div class="language-section-header"><span class="language-badge">हि</span><div><h3>Hindi Details</h3><p>वैकल्पिक हिंदी जानकारी यहां भरें।</p></div></div>
+          <div class="form-group"><label>{{ 'Program name (Hindi)' | t }}</label><input name="programNameHindi" [(ngModel)]="currentProgram.programNameHindi"></div>
+          <div class="form-group"><label>{{ 'Description (Hindi)' | t }}</label><textarea name="descriptionHindi" [(ngModel)]="currentProgram.descriptionHindi"></textarea></div>
+          <div class="form-group"><label>{{ 'Duration (Hindi)' | t }}</label><input name="durationHindi" [(ngModel)]="currentProgram.durationHindi"></div>
+          <div class="form-group"><label>{{ 'Features (Hindi, matching English line order)' | t }}</label><textarea name="featuresHindiInput" [(ngModel)]="featuresHindiInput" placeholder="एक फीचर प्रति लाइन"></textarea></div>
         </section>
 
         <div class="form-row">
@@ -258,7 +227,7 @@
         </div>
       </form>
     </div>
-  </ng-template>
+  </div>
 
   <!-- Display Programs by Category -->
   <div class="programs-display">
@@ -302,9 +271,6 @@
           <div class="card-body">
             <h3>{{ program.programName }}</h3>
             <div class="program-meta">
-              <span class="year-badge" *ngIf="program.examination">{{ program.examination }}</span>
-              <span class="year-badge" *ngIf="program.programStage">{{ program.programStage }}</span>
-              <span class="year-badge" *ngIf="program.paperVariant">{{ program.paperVariant }}</span>
               <span class="year-badge">
                 <i class="fas fa-calendar-alt"></i> {{ program.year }}
               </span>

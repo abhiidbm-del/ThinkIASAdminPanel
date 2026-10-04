@@ -34,16 +34,16 @@ export class DirectoryService {
   }
 
   // Create folder
-  createFolder(name: string, parentId: string | null = null, section: 'pre' | 'mains' = 'pre'): Observable<DirectoryResponse> {
-    const request: CreateFolderRequest = { name, parentId, section };
+  createFolder(name: string, parentId: string | null = null): Observable<DirectoryResponse> {
+    const request: CreateFolderRequest = { name, parentId };
     return this.http.post<DirectoryResponse>(`${this.apiUrl}/folders`, request, {
       headers: this.getHeaders()
     });
   }
 
   // Create file (with link)
-  createFile(name: string, parentId: string | null, fileLink: string, description: string = '', section: 'pre' | 'mains' = 'pre'): Observable<DirectoryResponse> {
-    const request: CreateFileRequest = { name, parentId, fileLink, description, section };
+  createFile(name: string, parentId: string | null, fileLink: string, description: string = ''): Observable<DirectoryResponse> {
+    const request: CreateFileRequest = { name, parentId, fileLink, description };
     return this.http.post<DirectoryResponse>(`${this.apiUrl}/files`, request, {
       headers: this.getHeaders()
     });
@@ -58,8 +58,8 @@ export class DirectoryService {
   }
 
   // Get directory tree
-  getDirectoryTree(parentId?: string | null, section: 'pre' | 'mains' = 'pre'): Observable<DirectoryTreeResponse> {
-    let params = new HttpParams().set('section', section);
+  getDirectoryTree(parentId?: string | null): Observable<DirectoryTreeResponse> {
+    let params = new HttpParams();
     if (parentId) {
       params = params.set('parentId', parentId);
     }

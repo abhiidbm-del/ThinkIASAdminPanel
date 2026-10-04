@@ -143,34 +143,17 @@ import { BatchService, Batch, CreateBatchDto, UpdateBatchDto } from '../../../sh
     <ng-template #batchDialog>
       <h2 mat-dialog-title>{{ editingBatch ? 'Edit' : 'Create' }} Batch</h2>
 
-      <form [formGroup]="batchForm" (ngSubmit)="onSubmit()">
+      <form [formGroup]="batchForm" (ngSubmit)="onSubmit()"><mat-form-field><mat-label>{{ 'Batch name (Hindi)' | t }}</mat-label><input matInput formControlName="batchNameHindi"></mat-form-field><mat-form-field><mat-label>{{ 'Duration (Hindi)' | t }}</mat-label><input matInput formControlName="durationHindi"></mat-form-field>
         <mat-dialog-content class="dialog-content">
           <div class="form-grid">
-            <section class="language-section english-section">
-              <div class="language-section-header"><span class="language-badge">EN</span><h3>English Details</h3></div>
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Batch Name *</mat-label>
-                <input matInput formControlName="batchName" placeholder="e.g., Morning Batch, Weekend Batch">
-                <mat-error *ngIf="batchForm.get('batchName')?.hasError('required')">
-                  Batch name is required
-                </mat-error>
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>English Brochure Link</mat-label>
-                <input matInput formControlName="brochureEnglish" placeholder="https://example.com/brochure-english.pdf">
-              </mat-form-field>
-            </section>
-            <section class="language-section hindi-section">
-              <div class="language-section-header"><span class="language-badge">हि</span><h3>Hindi Details</h3></div>
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Batch name (Hindi)</mat-label>
-                <input matInput formControlName="batchNameHindi">
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Hindi Brochure Link</mat-label>
-                <input matInput formControlName="brochureHindi" placeholder="https://example.com/brochure-hindi.pdf">
-              </mat-form-field>
-            </section>
+            <!-- Batch Name -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Batch Name *</mat-label>
+              <input matInput formControlName="batchName" placeholder="e.g., Morning Batch, Weekend Batch">
+              <mat-error *ngIf="batchForm.get('batchName')?.hasError('required')">
+                Batch name is required
+              </mat-error>
+            </mat-form-field>
 
             <!-- Date Range -->
             <div class="date-range-group">
@@ -196,6 +179,19 @@ import { BatchService, Batch, CreateBatchDto, UpdateBatchDto } from '../../../sh
               <i class="fas fa-hourglass-half"></i>
               Duration: {{ calculateDuration() }}
             </div>
+
+            <!-- Brochure Links -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ 'Hindi Brochure Link' | t }}</mat-label>
+              <input matInput formControlName="brochureHindi" placeholder="https://example.com/brochure-hindi.pdf">
+              <mat-hint>Link to Hindi brochure PDF</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ 'English Brochure Link' | t }}</mat-label>
+              <input matInput formControlName="brochureEnglish" placeholder="https://example.com/brochure-english.pdf">
+              <mat-hint>Link to English brochure PDF</mat-hint>
+            </mat-form-field>
 
             <!-- Order -->
             <mat-form-field appearance="outline">
@@ -280,8 +276,6 @@ export class AdminBatchesComponent implements OnInit {
     this.editingBatch = null;
     this.batchForm.reset({
       batchName: '',
-      batchNameHindi: '',
-      durationHindi: '',
       startDate: '',
       endDate: '',
       brochureHindi: '',

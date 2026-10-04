@@ -11,11 +11,8 @@
 }
 
 /* Header Styles */
-.meeting-container.mains-mentorship .meeting-header {
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
-}
 .meeting-header {
-  background: linear-gradient(135deg, #047857 0%, #10b981 100%);
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
   color: white;
   padding: 28px 40px;
   display: flex;
@@ -462,7 +459,7 @@
   border-radius: 16px;
   width: 100%;
   max-width: 500px;
-  max-height: calc(100dvh - 32px);
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -489,11 +486,6 @@
   gap: 16px;
   background: linear-gradient(135deg, #f8fafc, #f1f5f9);
 }
-
-.meeting-create-modal { width: 100%; max-height: calc(100dvh - 32px); }
-.meeting-create-modal .modal-header,
-.meeting-create-modal .modal-footer { flex: 0 0 auto; }
-.meeting-create-modal .modal-body { min-height: 0; flex: 1 1 auto; overscroll-behavior: contain; }
 
 .modal-icon {
   font-size: 1.8rem;

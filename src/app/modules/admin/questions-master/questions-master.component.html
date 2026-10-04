@@ -37,47 +37,18 @@
     <p role="alert" class="import-message error" *ngIf="importError">{{ importError }}</p>
     <div class="import-message processing" *ngIf="importing"><mat-spinner diameter="20"></mat-spinner><span>{{ language.hindi ? 'फ़ाइल संसाधित हो रही है...' : 'Processing file...' }}</span></div>
 
-    <div class="import-preview" *ngIf="importPreview.length || duplicateQuestions.length">
-      <div class="preview-heading"><div><span class="preview-label">{{ language.hindi ? 'Preview ready' : 'Preview ready' }}</span><h3>{{ importPreview.length ? importPreview.length + (language.hindi ? ' प्रश्न आयात के लिए तैयार हैं' : ' questions ready to import') : (language.hindi ? 'कोई नया प्रश्न आयात के लिए नहीं है' : 'No new questions to import') }}</h3></div><mat-icon>fact_check</mat-icon></div>
-      <div class="duplicate-report" *ngIf="duplicateQuestions.length" role="status">
-        <div class="duplicate-report-heading">
-          <mat-icon>content_copy</mat-icon>
-          <strong>{{ language.hindi ? duplicateQuestions.length + ' दोहराए गए प्रश्न हटाए गए' : duplicateQuestions.length + ' repeated question(s) removed' }}</strong>
-        </div>
-        <p>{{ language.hindi ? 'ये प्रश्न final preview और import में शामिल नहीं होंगे:' : 'These repeated questions are excluded from the final preview and import:' }}</p>
-        <ul>
-          <li *ngFor="let duplicate of duplicateQuestions">
-            <ng-container *ngIf="duplicate.reason === 'already-added'; else repeatedInFile">
-              {{ language.hindi ? 'प्रश्न ' + duplicate.duplicateIndex + ' पहले से Question Bank में जोड़ा गया है:' : 'Question ' + duplicate.duplicateIndex + ' is already in the Question Bank:' }}
-            </ng-container>
-            <ng-template #repeatedInFile>
-              {{ language.hindi ? 'अपलोड का प्रश्न ' + duplicate.duplicateIndex + ', प्रश्न ' + duplicate.firstIndex + ' जैसा है:' : 'Uploaded question ' + duplicate.duplicateIndex + ' repeats question ' + duplicate.firstIndex + ':' }}
-            </ng-template>
-            <span>{{ duplicate.questionText }}</span>
-            <small *ngIf="duplicate.questionHindi">{{ duplicate.questionHindi }}</small>
-          </li>
-        </ul>
-      </div>
-      <p class="tag-selection-hint" *ngIf="importPreview.length">{{ language.hindi ? 'हर प्रश्न के लिए अलग tag चुनें। Tag खाली छोड़ने पर प्रश्न बिना tag के import होगा।' : 'Choose a tag for each question. Leave it blank to import that question without a tag.' }}</p>
-      <div class="question-tag-list" *ngIf="importPreview.length">
-        <article class="question-tag-row" *ngFor="let item of importPreview; let i = index">
-          <div class="question-tag-copy">
-            <span class="question-number">{{ i + 1 }}</span>
-            <div>
-              <p>{{ item.question.english }}</p>
-              <small *ngIf="item.question.hindi">{{ item.question.hindi }}</small>
-            </div>
-          </div>
-          <mat-form-field appearance="outline" class="question-tag-field">
-            <mat-label>{{ language.hindi ? 'वैकल्पिक tag' : 'Optional tag' }}</mat-label>
-            <mat-select [(ngModel)]="questionImportTags[i]" [ngModelOptions]="{ standalone: true }">
-              <mat-option value="">{{ language.hindi ? 'बिना tag' : 'No tag' }}</mat-option>
-              <mat-option *ngFor="let tag of tags()" [value]="tag._id">{{ tag.tag }}</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </article>
-      </div>
-      <button mat-raised-button color="primary" class="confirm-import-btn" *ngIf="importPreview.length" [disabled]="importing" (click)="confirmImport()"><mat-icon>file_upload</mat-icon>{{ 'Import Questions' | t }}</button>
+    <div class="import-preview" *ngIf="importPreview.length">
+      <div class="preview-heading"><div><span class="preview-label">{{ language.hindi ? 'Preview ready' : 'Preview ready' }}</span><h3>{{ importPreview.length }} {{ language.hindi ? 'प्रश्न तैयार हैं' : 'questions ready to import' }}</h3></div><mat-icon>fact_check</mat-icon></div>
+      <ol><li *ngFor="let item of importPreview.slice(0,5)"><span>{{ item.question.english }}</span><small *ngIf="item.question.hindi">{{ item.question.hindi }}</small></li></ol>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ language.hindi ? 'Import के लिए Tag चुनें' : 'Choose tag for imported questions' }}</mat-label>
+        <mat-select [(ngModel)]="importTags" multiple>
+          <mat-option *ngFor="let tag of tags()" [value]="tag._id">{{ tag.tag }}</mat-option>
+        </mat-select>
+        <mat-icon matSuffix>local_offer</mat-icon>
+      </mat-form-field>
+      <small>{{ language.hindi ? 'चुना गया tag हर question पर apply होगा।' : 'The selected tag will be applied to every imported question.' }}</small>
+      <button mat-raised-button color="primary" class="confirm-import-btn" [disabled]="importing || !importTags.length" (click)="confirmImport()"><mat-icon>file_upload</mat-icon>{{ 'Import Questions' | t }}</button>
     </div>
   </section>
 

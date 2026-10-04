@@ -29,11 +29,11 @@
         <div class="syllabus-subtabs">
             <button class="subtab-button" [class.active]="syllabusSubTab === 'prelims'"
                 (click)="switchSyllabusSubTab('prelims')">
-                Prelims Examination Syllabus
+                Prelims Syllabus
             </button>
             <button class="subtab-button" [class.active]="syllabusSubTab === 'mains'"
                 (click)="switchSyllabusSubTab('mains')">
-                Mains Examination Syllabus
+                Mains Syllabus
             </button>
         </div>
 
@@ -752,50 +752,34 @@
     <div *ngIf="activeTab === 'topicwise'" class="tab-content">
         <!-- Subtabs for each analysis type -->
         <div class="topicwise-subtabs">
-            <button class="subtab-button" [class.active]="topicwiseSubTab === 'prelims1'"
-                (click)="switchTopicwiseSubTab('prelims1')">
-                Prelims Paper-I
-            </button>
-            <button class="subtab-button" [class.active]="topicwiseSubTab === 'prelims2'"
-                (click)="switchTopicwiseSubTab('prelims2')">
-                Prelims Paper-II
-            </button>
             <button class="subtab-button" [class.active]="topicwiseSubTab === 'gs1'"
                 (click)="switchTopicwiseSubTab('gs1')">
-                GS Paper 1
+                GS Paper 1 Analysis
             </button>
             <button class="subtab-button" [class.active]="topicwiseSubTab === 'gs2'"
                 (click)="switchTopicwiseSubTab('gs2')">
-                GS Paper 2
+                GS Paper 2 Analysis
             </button>
             <button class="subtab-button" [class.active]="topicwiseSubTab === 'gs3'"
                 (click)="switchTopicwiseSubTab('gs3')">
-                GS Paper 3
+                GS Paper 3 Analysis
             </button>
             <button class="subtab-button" [class.active]="topicwiseSubTab === 'gs4'"
                 (click)="switchTopicwiseSubTab('gs4')">
-                GS Paper 4
+                GS Paper 4 Analysis
             </button>
             <button class="subtab-button" [class.active]="topicwiseSubTab === 'essay'"
                 (click)="switchTopicwiseSubTab('essay')">
-                Essay
+                Essay Paper Analysis
             </button>
             <button class="subtab-button" [class.active]="topicwiseSubTab === 'optional'"
                 (click)="switchTopicwiseSubTab('optional')">
-                Optional
+                Optional Subjects
             </button>
         </div>
 
         <!-- Dynamic Directory Explorer for each subtab -->
         <div class="directory-explorer">
-            <div *ngIf="topicwiseSubTab === 'prelims1'" class="tab-content active">
-                <app-directory-explorer [category]="'prelims-paper-1'" [categoryName]="'Prelims Paper-I'">
-                </app-directory-explorer>
-            </div>
-            <div *ngIf="topicwiseSubTab === 'prelims2'" class="tab-content">
-                <app-directory-explorer [category]="'prelims-paper-2'" [categoryName]="'Prelims Paper-II'">
-                </app-directory-explorer>
-            </div>
             <!-- GS Paper 1 Analysis -->
             <div *ngIf="topicwiseSubTab === 'gs1'" class="tab-content active">
                 <app-directory-explorer [category]="'gs1-analysis'" [categoryName]="'GS Paper 1 Analysis'">
